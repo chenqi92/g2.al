@@ -8,6 +8,7 @@ WebTools 是一个提供短链接生成和临时邮箱服务的现代化 Web 应
   - 自定义二维码生成
   - 点击量统计
   - 多种样式模板
+  - **基于 Cloudflare KV 存储**
 - 📧 临时邮箱
   - 即时创建一次性邮箱
   - 安全匿名通信
@@ -26,7 +27,7 @@ WebTools 是一个提供短链接生成和临时邮箱服务的现代化 Web 应
 - TypeScript
 - Vite
 - Tailwind CSS
-- Supabase
+- **Cloudflare Workers & KV**
 - i18next
 - React Router
 - Framer Motion
@@ -52,11 +53,19 @@ npm install
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，填入你的 Supabase 配置：
+编辑 `.env` 文件，填入你的 Cloudflare 配置：
 
 ```env
-VITE_SUPABASE_URL=your_supabase_url_here
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+# Cloudflare Configuration
+VITE_CLOUDFLARE_ACCOUNT_ID=your_account_id_here
+VITE_CLOUDFLARE_API_TOKEN=your_api_token_here
+VITE_CLOUDFLARE_KV_NAMESPACE_ID=your_kv_namespace_id_here
+
+# URL Shortener Configuration
+VITE_SHORT_URL_DOMAIN=g2.al
+
+# Temporary Email Configuration
+VITE_TEMP_EMAIL_DOMAINS=tempmail.io,mailtemp.org,10minutemail.com,throwawaymail.net,disposable.cc
 ```
 
 4. 启动开发服务器：
@@ -71,21 +80,35 @@ npm run dev
 npm run build
 ```
 
+## Cloudflare 配置
+
+短链接服务使用 Cloudflare Workers 和 KV 存储实现。详细设置步骤请参考 [CLOUDFLARE_SETUP.md](CLOUDFLARE_SETUP.md)。
+
+主要配置步骤包括：
+
+1. 创建 Cloudflare KV 命名空间
+2. 部署 Cloudflare Worker 处理重定向
+3. 配置域名路由
+4. 设置 API 令牌
+
 ## 项目结构
 
 ```
 src/
 ├── components/     # 可复用组件
 ├── contexts/       # React Context
-├── lib/           # 工具库和配置
-├── pages/         # 页面组件
-└── App.tsx        # 应用入口
+├── lib/            # 工具库和配置
+│   └── cloudflare.ts # Cloudflare KV API 客户端
+├── pages/          # 页面组件
+└── App.tsx         # 应用入口
+cloudflare-worker.js # Cloudflare Worker 脚本
 ```
 
 ## 环境要求
 
 - Node.js 16+
 - npm 7+
+- Cloudflare 账户
 
 ## 贡献指南
 

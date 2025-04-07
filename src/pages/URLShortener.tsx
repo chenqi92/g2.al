@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link2, Copy, ExternalLink, Download, Circle, Square, Star } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
+import { storeUrl } from '../lib/cloudflare';
+import toast from 'react-hot-toast';
 
 interface QRColorTemplate {
   id: string;
@@ -139,13 +141,35 @@ export default function URLShortener() {
     setError('');
     
     try {
-      // TODO: Implement URL shortening logic
+      // Validate URL
+      if (!url) {
+        throw new Error('URL is required');
+      }
+      
+      // Ensure URL has http/https protocol
+      let normalizedUrl = url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        normalizedUrl = `https://${url}`;
+      }
+      
+      // Generate a random short code
       const shortCode = generateShortCode(6);
       const domain = import.meta.env.VITE_SHORT_URL_DOMAIN || 'g2.al';
       const shortUrl = `https://${domain}/${shortCode}`;
+      
+      // Store URL in Cloudflare KV
+      const result = await storeUrl(shortCode, normalizedUrl);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create short URL');
+      }
+      
+      // Set the shortened URL
       setShortenedUrl(shortUrl);
-    } catch {
-      setError(t('urlShortenerPage.error'));
+      toast.success(t('urlShortenerPage.success'));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setError(message || t('urlShortenerPage.error'));
     } finally {
       setIsLoading(false);
     }

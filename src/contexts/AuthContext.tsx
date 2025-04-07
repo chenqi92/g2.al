@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+interface User {
+  id: string;
+  email: string;
+  user_metadata: {
+    user_name?: string;
+  };
+}
 
 interface AuthContextType {
   user: User | null;
@@ -14,40 +20,54 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
+  // Use localStorage for simple state persistence
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for changes on auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Failed to parse stored user:', error);
+      }
+    }
+    setLoading(false);
   }, []);
 
   const signInWithGithub = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-    });
-    if (error) throw error;
+    // In a real implementation, you would integrate with GitHub OAuth
+    // For now, simulate a sign-in with mock data
+    const mockUser: User = {
+      id: 'github-' + Math.random().toString(36).substring(2, 9),
+      email: 'github-user@example.com',
+      user_metadata: {
+        user_name: 'GitHub User'
+      }
+    };
+    
+    setUser(mockUser);
+    localStorage.setItem('user', JSON.stringify(mockUser));
   };
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    });
-    if (error) throw error;
+    // In a real implementation, you would integrate with Google OAuth
+    // For now, simulate a sign-in with mock data
+    const mockUser: User = {
+      id: 'google-' + Math.random().toString(36).substring(2, 9),
+      email: 'google-user@example.com',
+      user_metadata: {
+        user_name: 'Google User'
+      }
+    };
+    
+    setUser(mockUser);
+    localStorage.setItem('user', JSON.stringify(mockUser));
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    setUser(null);
+    localStorage.removeItem('user');
   };
 
   return (
