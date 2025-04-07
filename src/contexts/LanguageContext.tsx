@@ -9,7 +9,33 @@ i18n.use(initReactI18next).init({
       translation: {
         urlShortener: 'URL Shortener',
         tempMail: 'Temp Mail',
-        dashboard: 'Dashboard',
+        dashboard: {
+          title: 'Dashboard',
+          description: 'Manage your shortened URLs and temporary email addresses',
+          stats: {
+            activeUrls: 'Active URLs',
+            totalClicks: 'Total Clicks',
+            activeEmails: 'Active Emails',
+            totalMessages: 'Total Messages'
+          },
+          shortUrls: {
+            title: 'Short URLs',
+            createNew: 'Create New',
+            originalUrl: 'Original URL',
+            shortUrl: 'Short URL',
+            clicks: 'Clicks',
+            created: 'Created',
+            actions: 'Actions'
+          },
+          tempEmails: {
+            title: 'Temporary Emails',
+            createNew: 'Create New',
+            emailAddress: 'Email Address',
+            messages: 'Messages',
+            expires: 'Expires',
+            actions: 'Actions'
+          }
+        },
         welcome: 'Welcome to WebTools',
         description: 'Your all-in-one solution for URL shortening and temporary email services.',
         auth: {
@@ -39,7 +65,7 @@ i18n.use(initReactI18next).init({
         rights: 'All rights reserved.',
         tempMailPage: {
           title: 'Temporary Email',
-          description: 'Generate disposable email addresses for secure, anonymous communication',
+          mainDescription: 'Generate disposable email addresses for secure, anonymous communication',
           yourAddress: 'Your Temporary Email Address',
           newAddress: 'New Address',
           refresh: 'Refresh',
@@ -52,11 +78,18 @@ i18n.use(initReactI18next).init({
             generate: 'Failed to generate new email address',
             copy: 'Failed to copy email address',
             refresh: 'Failed to refresh inbox'
+          },
+          features: {
+            title: 'Features:',
+            disposable: 'Create disposable email addresses instantly',
+            secure: 'Secure and anonymous communication',
+            autoDelete: 'Automatic deletion after expiry',
+            noSignup: 'No signup required'
           }
         },
         urlShortenerPage: {
           title: 'URL Shortener',
-          description: 'Transform long URLs into short, manageable links',
+          mainDescription: 'Transform long URLs into short, manageable links',
           enterUrl: 'Enter your long URL',
           shortenButton: 'Shorten URL',
           processing: 'Processing...',
@@ -88,6 +121,14 @@ i18n.use(initReactI18next).init({
             gradient: 'Gradient',
             sketch: 'Sketch',
             watercolor: 'Watercolor'
+          },
+          footerText: 'Secure, fast, and reliable URL shortening service.',
+          features: {
+            title: 'Features:',
+            qrCode: 'Generate customizable QR codes',
+            analytics: 'Track click analytics',
+            secure: 'Secure and reliable links',
+            customize: 'Customize your short URLs'
           }
         },
         privacyPolicy: {
@@ -108,6 +149,20 @@ i18n.use(initReactI18next).init({
           userRights: {
             title: 'Your Rights',
             content: 'You have the right to access or delete your information.'
+          },
+          sections: {
+            cookies: {
+              title: 'Cookies and Tracking',
+              content: 'We use cookies to improve your experience and analyze website traffic.'
+            },
+            thirdParty: {
+              title: 'Third-Party Services',
+              content: 'We may use third-party services to process information.'
+            },
+            updates: {
+              title: 'Policy Updates',
+              content: 'We may update this policy from time to time.'
+            }
           }
         },
         termsOfService: {
@@ -128,7 +183,26 @@ i18n.use(initReactI18next).init({
           liability: {
             title: 'Limitation of Liability',
             content: 'We are not liable for indirect damages.'
+          },
+          sections: {
+            account: {
+              title: 'Account Terms',
+              content: 'You are responsible for maintaining the security of your account.'
+            },
+            content: {
+              title: 'Content Guidelines',
+              content: 'You must not use our services to share illegal or harmful content.'
+            },
+            changes: {
+              title: 'Service Changes',
+              content: 'We reserve the right to modify or discontinue services at any time.'
+            }
           }
+        },
+        footer: {
+          description: 'WebTools - Your trusted companion for URL shortening and temporary email services.',
+          followUs: 'Follow Us',
+          contactUs: 'Contact Us'
         }
       }
     },
@@ -136,7 +210,33 @@ i18n.use(initReactI18next).init({
       translation: {
         urlShortener: '短链生成',
         tempMail: '临时邮箱',
-        dashboard: '控制台',
+        dashboard: {
+          title: '控制台',
+          description: '管理您的短链接和临时邮箱',
+          stats: {
+            activeUrls: '活跃链接',
+            totalClicks: '总点击量',
+            activeEmails: '活跃邮箱',
+            totalMessages: '总消息数'
+          },
+          shortUrls: {
+            title: '短链接',
+            createNew: '新建链接',
+            originalUrl: '原始链接',
+            shortUrl: '短链接',
+            clicks: '点击量',
+            created: '创建时间',
+            actions: '操作'
+          },
+          tempEmails: {
+            title: '临时邮箱',
+            createNew: '新建邮箱',
+            emailAddress: '邮箱地址',
+            messages: '消息数',
+            expires: '过期时间',
+            actions: '操作'
+          }
+        },
         welcome: '欢迎使用 WebTools',
         description: '为您提供短链接生成和临时邮箱服务的一站式解决方案。',
         auth: {
@@ -166,7 +266,7 @@ i18n.use(initReactI18next).init({
         rights: '保留所有权利。',
         tempMailPage: {
           title: '临时邮箱',
-          description: '生成临时邮箱地址，保护您的隐私安全',
+          mainDescription: '生成临时邮箱地址，保护您的隐私安全',
           yourAddress: '您的临时邮箱地址',
           newAddress: '新建邮箱',
           refresh: '刷新',
@@ -179,11 +279,18 @@ i18n.use(initReactI18next).init({
             generate: '生成新邮箱地址失败',
             copy: '复制邮箱地址失败',
             refresh: '刷新收件箱失败'
+          },
+          features: {
+            title: '功能特点：',
+            disposable: '即时创建一次性邮箱',
+            secure: '安全匿名的通信方式',
+            autoDelete: '到期自动删除',
+            noSignup: '无需注册'
           }
         },
         urlShortenerPage: {
           title: '短链生成',
-          description: '将长网址转换为简短的链接',
+          mainDescription: '将长网址转换为简短的链接',
           enterUrl: '输入长网址',
           shortenButton: '生成短链',
           processing: '处理中...',
@@ -215,6 +322,14 @@ i18n.use(initReactI18next).init({
             gradient: '渐变',
             sketch: '手绘',
             watercolor: '水墨'
+          },
+          footerText: '安全、快速、可靠的短链接服务。',
+          features: {
+            title: '功能特点：',
+            qrCode: '生成自定义二维码',
+            analytics: '追踪点击分析',
+            secure: '安全可靠的链接',
+            customize: '自定义短链接'
           }
         },
         privacyPolicy: {
@@ -235,6 +350,20 @@ i18n.use(initReactI18next).init({
           userRights: {
             title: '您的权利',
             content: '您有权访问或删除您的信息。'
+          },
+          sections: {
+            cookies: {
+              title: 'Cookie 和跟踪',
+              content: '我们使用 Cookie 来改善您的体验并分析网站流量。'
+            },
+            thirdParty: {
+              title: '第三方服务',
+              content: '我们可能使用第三方服务来处理信息。'
+            },
+            updates: {
+              title: '政策更新',
+              content: '我们可能会不时更新此政策。'
+            }
           }
         },
         termsOfService: {
@@ -255,7 +384,26 @@ i18n.use(initReactI18next).init({
           liability: {
             title: '责任限制',
             content: '我们对间接损害不承担责任。'
+          },
+          sections: {
+            account: {
+              title: '账户条款',
+              content: '您有责任维护账户的安全。'
+            },
+            content: {
+              title: '内容准则',
+              content: '您不得使用我们的服务分享非法或有害内容。'
+            },
+            changes: {
+              title: '服务变更',
+              content: '我们保留随时修改或终止服务的权利。'
+            }
           }
+        },
+        footer: {
+          description: 'WebTools - 您值得信赖的短链接和临时邮箱服务伙伴。',
+          followUs: '关注我们',
+          contactUs: '联系我们'
         }
       }
     }

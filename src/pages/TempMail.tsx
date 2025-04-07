@@ -25,7 +25,7 @@ export default function TempMail() {
       setTempEmail(`user${Math.random().toString(36).substring(2, 8)}@tempmail.example.com`);
       setEmails([]);
       setSelectedEmail(null);
-    } catch (err) {
+    } catch {
       setError(t('tempMailPage.error.generate'));
     } finally {
       setIsLoading(false);
@@ -35,7 +35,7 @@ export default function TempMail() {
   const copyEmailAddress = async () => {
     try {
       await navigator.clipboard.writeText(tempEmail);
-    } catch (err) {
+    } catch {
       setError(t('tempMailPage.error.copy'));
     }
   };
@@ -44,7 +44,7 @@ export default function TempMail() {
     setIsLoading(true);
     try {
       // TODO: Implement inbox refresh logic
-    } catch (err) {
+    } catch {
       setError(t('tempMailPage.error.refresh'));
     } finally {
       setIsLoading(false);
@@ -60,8 +60,17 @@ export default function TempMail() {
             {t('tempMailPage.title')}
           </h1>
           <p className="text-lg text-gray-300">
-            {t('tempMailPage.description')}
+            {t('tempMailPage.mainDescription')}
           </p>
+          <div className="mt-4 text-gray-400">
+            <h2 className="font-medium mb-2">{t('tempMailPage.features.title')}</h2>
+            <ul className="list-disc list-inside space-y-1">
+              <li>{t('tempMailPage.features.disposable')}</li>
+              <li>{t('tempMailPage.features.secure')}</li>
+              <li>{t('tempMailPage.features.autoDelete')}</li>
+              <li>{t('tempMailPage.features.noSignup')}</li>
+            </ul>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

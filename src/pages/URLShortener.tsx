@@ -152,7 +152,7 @@ export default function URLShortener() {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(shortenedUrl);
-    } catch (err) {
+    } catch {
       setError(t('urlShortenerPage.copyError'));
     }
   };
@@ -198,8 +198,17 @@ export default function URLShortener() {
             {t('urlShortenerPage.title')}
           </h1>
           <p className="text-lg text-gray-300">
-            {t('urlShortenerPage.description')}
+            {t('urlShortenerPage.mainDescription')}
           </p>
+          <div className="mt-4 text-gray-400">
+            <h2 className="font-medium mb-2">{t('urlShortenerPage.features.title')}</h2>
+            <ul className="list-disc list-inside space-y-1">
+              <li>{t('urlShortenerPage.features.qrCode')}</li>
+              <li>{t('urlShortenerPage.features.analytics')}</li>
+              <li>{t('urlShortenerPage.features.secure')}</li>
+              <li>{t('urlShortenerPage.features.customize')}</li>
+            </ul>
+          </div>
         </div>
 
         <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-xl border border-gray-700 p-6 md:p-8">
@@ -389,7 +398,7 @@ export default function URLShortener() {
         </div>
 
         <div className="mt-8 text-center text-sm text-gray-400">
-          <p>{t('urlShortenerPage.footer')}</p>
+          <p>{t('urlShortenerPage.footerText')}</p>
         </div>
       </div>
     </div>

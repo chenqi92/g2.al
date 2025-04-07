@@ -17,16 +17,16 @@ export default function Footer() {
           <div className="col-span-2">
             <h3 className="text-lg font-semibold text-cyan-400 mb-4">{t('about.title')}</h3>
             <p className="text-gray-400 mb-4">
-              {t('about.description')}
+              {t('footer.description')}
             </p>
             <div className="flex space-x-4">
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-cyan-400">
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-cyan-400" title={t('footer.followUs')}>
                 <Github className="h-6 w-6" />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-cyan-400">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-cyan-400" title={t('footer.followUs')}>
                 <Twitter className="h-6 w-6" />
               </a>
-              <a href="mailto:contact@example.com" className="text-gray-400 hover:text-cyan-400">
+              <a href="mailto:contact@example.com" className="text-gray-400 hover:text-cyan-400" title={t('footer.contactUs')}>
                 <Mail className="h-6 w-6" />
               </a>
             </div>

@@ -47,10 +47,10 @@ export default function Dashboard() {
         <div className="text-center mb-12">
           <BarChart2 className="h-12 w-12 text-cyan-400 mx-auto mb-4" />
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-blue-500 text-transparent bg-clip-text">
-            Dashboard
+            {t('dashboard.title')}
           </h1>
           <p className="text-lg text-gray-300">
-            Manage your shortened URLs and temporary email addresses
+            {t('dashboard.description')}
           </p>
         </div>
 
@@ -58,14 +58,14 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <div className="bg-gradient-to-br from-cyan-900/50 to-blue-900/50 rounded-xl border border-cyan-800/50 p-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-gray-400">Active URLs</h3>
+              <h3 className="text-gray-400">{t('dashboard.stats.activeUrls')}</h3>
               <Link2 className="h-5 w-5 text-cyan-400" />
             </div>
             <p className="text-3xl font-bold mt-2">{shortUrls.length}</p>
           </div>
           <div className="bg-gradient-to-br from-cyan-900/50 to-blue-900/50 rounded-xl border border-cyan-800/50 p-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-gray-400">Total Clicks</h3>
+              <h3 className="text-gray-400">{t('dashboard.stats.totalClicks')}</h3>
               <BarChart2 className="h-5 w-5 text-cyan-400" />
             </div>
             <p className="text-3xl font-bold mt-2">
@@ -74,14 +74,14 @@ export default function Dashboard() {
           </div>
           <div className="bg-gradient-to-br from-cyan-900/50 to-blue-900/50 rounded-xl border border-cyan-800/50 p-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-gray-400">Active Emails</h3>
+              <h3 className="text-gray-400">{t('dashboard.stats.activeEmails')}</h3>
               <Mail className="h-5 w-5 text-cyan-400" />
             </div>
             <p className="text-3xl font-bold mt-2">{tempEmails.length}</p>
           </div>
           <div className="bg-gradient-to-br from-cyan-900/50 to-blue-900/50 rounded-xl border border-cyan-800/50 p-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-gray-400">Total Messages</h3>
+              <h3 className="text-gray-400">{t('dashboard.stats.totalMessages')}</h3>
               <Mail className="h-5 w-5 text-cyan-400" />
             </div>
             <p className="text-3xl font-bold mt-2">
@@ -93,13 +93,13 @@ export default function Dashboard() {
         {/* Short URLs Section */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold">Short URLs</h2>
+            <h2 className="text-2xl font-semibold">{t('dashboard.shortUrls.title')}</h2>
             <Link
               to="/url-shortener"
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors text-white"
             >
               <Link2 className="h-4 w-4" />
-              Create New
+              {t('dashboard.shortUrls.createNew')}
             </Link>
           </div>
           <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-xl border border-gray-700 overflow-hidden">
@@ -107,11 +107,11 @@ export default function Dashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Original URL</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Short URL</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Clicks</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Created</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">{t('dashboard.shortUrls.originalUrl')}</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">{t('dashboard.shortUrls.shortUrl')}</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">{t('dashboard.shortUrls.clicks')}</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">{t('dashboard.shortUrls.created')}</th>
+                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">{t('dashboard.shortUrls.actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
@@ -149,13 +149,13 @@ export default function Dashboard() {
         {/* Temporary Emails Section */}
         <div>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold">Temporary Emails</h2>
+            <h2 className="text-2xl font-semibold">{t('dashboard.tempEmails.title')}</h2>
             <Link
               to="/temp-mail"
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors text-white"
             >
               <Mail className="h-4 w-4" />
-              Create New
+              {t('dashboard.tempEmails.createNew')}
             </Link>
           </div>
           <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-xl border border-gray-700 overflow-hidden">
@@ -163,10 +163,10 @@ export default function Dashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Email Address</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Messages</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Expires</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">{t('dashboard.tempEmails.emailAddress')}</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">{t('dashboard.tempEmails.messages')}</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">{t('dashboard.tempEmails.expires')}</th>
+                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">{t('dashboard.tempEmails.actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
