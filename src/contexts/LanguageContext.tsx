@@ -38,6 +38,10 @@ i18n.use(initReactI18next).init({
         },
         welcome: 'Welcome to WebTools',
         description: 'Your all-in-one solution for URL shortening and temporary email services.',
+        home: {
+          urlShortenerDesc: 'Transform long URLs into short, manageable links with advanced analytics.',
+          tempMailDesc: 'Generate temporary email addresses for secure, disposable communication.'
+        },
         auth: {
           signIn: 'Sign In',
           signUp: 'Sign Up',
@@ -239,6 +243,10 @@ i18n.use(initReactI18next).init({
         },
         welcome: '欢迎使用 WebTools',
         description: '为您提供短链接生成和临时邮箱服务的一站式解决方案。',
+        home: {
+          urlShortenerDesc: '将长网址转换为简短的链接，并进行高级分析。',
+          tempMailDesc: '生成临时邮箱地址，用于安全、可丢弃的通信。'
+        },
         auth: {
           signIn: '登录',
           signUp: '注册',

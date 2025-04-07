@@ -21,8 +21,14 @@ export default function TempMail() {
   const generateNewEmail = async () => {
     setIsLoading(true);
     try {
-      // TODO: Implement email generation logic
-      setTempEmail(`user${Math.random().toString(36).substring(2, 8)}@tempmail.example.com`);
+      // Get available domains from env var or use default
+      const availableDomains = (import.meta.env.VITE_TEMP_EMAIL_DOMAINS || 'tempmail.io,mailtemp.org').split(',');
+      // Generate random username
+      const username = `user${Math.random().toString(36).substring(2, 8)}`;
+      // Select random domain from available domains
+      const domain = availableDomains[Math.floor(Math.random() * availableDomains.length)];
+      
+      setTempEmail(`${username}@${domain}`);
       setEmails([]);
       setSelectedEmail(null);
     } catch {
@@ -64,12 +70,24 @@ export default function TempMail() {
           </p>
           <div className="mt-4 text-gray-400">
             <h2 className="font-medium mb-2">{t('tempMailPage.features.title')}</h2>
-            <ul className="list-disc list-inside space-y-1">
-              <li>{t('tempMailPage.features.disposable')}</li>
-              <li>{t('tempMailPage.features.secure')}</li>
-              <li>{t('tempMailPage.features.autoDelete')}</li>
-              <li>{t('tempMailPage.features.noSignup')}</li>
-            </ul>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="p-3 bg-gray-800/30 rounded-lg flex items-center">
+                <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                <span>{t('tempMailPage.features.disposable')}</span>
+              </div>
+              <div className="p-3 bg-gray-800/30 rounded-lg flex items-center">
+                <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                <span>{t('tempMailPage.features.secure')}</span>
+              </div>
+              <div className="p-3 bg-gray-800/30 rounded-lg flex items-center">
+                <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                <span>{t('tempMailPage.features.autoDelete')}</span>
+              </div>
+              <div className="p-3 bg-gray-800/30 rounded-lg flex items-center">
+                <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                <span>{t('tempMailPage.features.noSignup')}</span>
+              </div>
+            </div>
           </div>
         </div>
 

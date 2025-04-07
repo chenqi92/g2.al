@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link2, Copy, ExternalLink, Download, Circle, Square, Triangle, Star } from 'lucide-react';
+import { Link2, Copy, ExternalLink, Download, Circle, Square, Star } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
 
@@ -140,13 +140,25 @@ export default function URLShortener() {
     
     try {
       // TODO: Implement URL shortening logic
-      const shortUrl = 'https://short.url/abc123';
+      const shortCode = generateShortCode(6);
+      const domain = import.meta.env.VITE_SHORT_URL_DOMAIN || 'g2.al';
+      const shortUrl = `https://${domain}/${shortCode}`;
       setShortenedUrl(shortUrl);
-    } catch (err) {
+    } catch {
       setError(t('urlShortenerPage.error'));
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Generate a random short code
+  const generateShortCode = (length: number) => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   };
 
   const copyToClipboard = async () => {
@@ -202,12 +214,24 @@ export default function URLShortener() {
           </p>
           <div className="mt-4 text-gray-400">
             <h2 className="font-medium mb-2">{t('urlShortenerPage.features.title')}</h2>
-            <ul className="list-disc list-inside space-y-1">
-              <li>{t('urlShortenerPage.features.qrCode')}</li>
-              <li>{t('urlShortenerPage.features.analytics')}</li>
-              <li>{t('urlShortenerPage.features.secure')}</li>
-              <li>{t('urlShortenerPage.features.customize')}</li>
-            </ul>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="p-3 bg-gray-800/30 rounded-lg flex items-center">
+                <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                <span>{t('urlShortenerPage.features.qrCode')}</span>
+              </div>
+              <div className="p-3 bg-gray-800/30 rounded-lg flex items-center">
+                <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                <span>{t('urlShortenerPage.features.analytics')}</span>
+              </div>
+              <div className="p-3 bg-gray-800/30 rounded-lg flex items-center">
+                <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                <span>{t('urlShortenerPage.features.secure')}</span>
+              </div>
+              <div className="p-3 bg-gray-800/30 rounded-lg flex items-center">
+                <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                <span>{t('urlShortenerPage.features.customize')}</span>
+              </div>
+            </div>
           </div>
         </div>
 

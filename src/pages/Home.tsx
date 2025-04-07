@@ -32,7 +32,7 @@ const Home = () => {
               <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
             </div>
             <h2 className="text-xl font-semibold mb-2">{t('urlShortener')}</h2>
-            <p className="text-gray-400">Transform long URLs into short, manageable links with advanced analytics.</p>
+            <p className="text-gray-400">{t('home.urlShortenerDesc')}</p>
           </Link>
 
           <Link
@@ -44,7 +44,7 @@ const Home = () => {
               <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
             </div>
             <h2 className="text-xl font-semibold mb-2">{t('tempMail')}</h2>
-            <p className="text-gray-400">Generate temporary email addresses for secure, disposable communication.</p>
+            <p className="text-gray-400">{t('home.tempMailDesc')}</p>
           </Link>
         </div>
       </motion.div>
