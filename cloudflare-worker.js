@@ -7,43 +7,39 @@
  * Deploy this script to Cloudflare Workers with access to your KV namespace
  */
 
-// Name of your KV Namespace
-const KV_NAMESPACE = 'URL_SHORTENER';
+// 获取 KV 命名空间
+const URL_SHORTENER = env.URL_SHORTENER;
 
-// Domain for short URLs (should match your app config)
+// 域名配置
 const SHORT_DOMAIN = 'g2.al';
 
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
-});
-
 /**
- * Main request handler
+ * 处理请求的主函数
  */
 async function handleRequest(request) {
   const url = new URL(request.url);
   const { pathname, hostname } = url;
 
-  // Check if this is a short URL request
+  // 检查是否是短链接请求
   if (hostname === SHORT_DOMAIN && pathname.length > 1) {
     return handleShortUrl(pathname.substring(1));
   }
 
-  // For API endpoints
+  // 对于 API 端点
   if (pathname.startsWith('/api/')) {
     return handleApiRequest(request, pathname);
   }
 
-  // Otherwise pass through to your main application or return 404
+  // 否则返回 404
   return new Response('Not Found', { status: 404 });
 }
 
 /**
- * Handle short URL redirect
+ * 处理短链接重定向
  */
 async function handleShortUrl(shortCode) {
   try {
-    // Look up the original URL in KV
+    // 从 KV 中查找原始 URL
     const originalUrl = await URL_SHORTENER.get(shortCode);
 
     if (!originalUrl) {
@@ -55,12 +51,12 @@ async function handleShortUrl(shortCode) {
       });
     }
 
-    // Increment click count in metadata
+    // 增加点击计数
     incrementClickCount(shortCode).catch(error => {
       console.error('Error updating click count:', error);
     });
 
-    // Redirect to the original URL
+    // 重定向到原始 URL
     return Response.redirect(originalUrl, 302);
   } catch (error) {
     console.error('Error processing short URL:', error);
@@ -69,19 +65,19 @@ async function handleShortUrl(shortCode) {
 }
 
 /**
- * Increment click count in metadata
+ * 增加点击计数
  */
 async function incrementClickCount(shortCode) {
   try {
-    // Fetch the current metadata
+    // 获取当前元数据
     const metadata = await URL_SHORTENER.getWithMetadata(shortCode);
     if (!metadata || !metadata.value) return;
 
-    // Update click count
+    // 更新点击计数
     const newMetadata = metadata.metadata || {};
     newMetadata.clickCount = (newMetadata.clickCount || 0) + 1;
 
-    // Store updated metadata
+    // 存储更新后的元数据
     await URL_SHORTENER.put(shortCode, metadata.value, {
       metadata: newMetadata
     });
@@ -91,10 +87,10 @@ async function incrementClickCount(shortCode) {
 }
 
 /**
- * Handle API requests
+ * 处理 API 请求
  */
 async function handleApiRequest(request, pathname) {
-  // For now, only handle GET requests to check if a short URL exists
+  // 目前只处理检查短链接是否存在的 GET 请求
   if (pathname === '/api/url' && request.method === 'GET') {
     const url = new URL(request.url);
     const code = url.searchParams.get('code');
@@ -116,4 +112,9 @@ async function handleApiRequest(request, pathname) {
   }
 
   return new Response('Not Found', { status: 404 });
-} 
+}
+
+// 导出事件监听器
+export default {
+  fetch: handleRequest
+}; 

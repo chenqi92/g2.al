@@ -1,0 +1,13 @@
+name = "url-shortener"
+main = "cloudflare-worker.js"
+compatibility_date = "2025-04-07"
+
+# KV 命名空间绑定
+kv_namespaces = [
+  { binding = "URL_SHORTENER", id = "your_kv_namespace_id_here" }
+]
+
+# 路由配置
+routes = [
+  { pattern = "g2.al/*", zone_name = "g2.al" }
+] 
