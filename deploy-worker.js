@@ -62,20 +62,71 @@ if (isCloudflareBuild) {
   }
 }
 
+// 打印环境变量值（仅显示部分值以保护安全）
+for (const key of requiredEnvVars) {
+  const value = process.env[key];
+  if (value) {
+    if (key.includes('TOKEN') || key.includes('ID')) {
+      // 对于敏感信息，仅显示前几个字符和长度
+      console.log(`${key}: ${value.substring(0, 4)}...${value.substring(value.length - 4)} (${value.length} 字符)`);
+    } else {
+      console.log(`${key}: ${value}`);
+    }
+  }
+}
+
 // 更新 wrangler.toml 文件
 const wranglerPath = path.join(__dirname, 'wrangler.toml');
+console.log(`读取 wrangler.toml 文件: ${wranglerPath}`);
 let wranglerContent = fs.readFileSync(wranglerPath, 'utf8');
 
+// 保存原始内容以便比较
+const originalContent = wranglerContent;
+
+// 获取 KV 命名空间 ID
+const kvNamespaceId = process.env.VITE_CLOUDFLARE_KV_NAMESPACE_ID;
+if (!kvNamespaceId) {
+  console.error('错误: VITE_CLOUDFLARE_KV_NAMESPACE_ID 环境变量为空');
+  process.exit(1);
+}
+
+console.log(`KV 命名空间 ID: ${kvNamespaceId.substring(0, 4)}...${kvNamespaceId.substring(kvNamespaceId.length - 4)}`);
+
 // 替换 KV 命名空间 ID
+console.log('替换 KV 命名空间 ID...');
+const kvPattern = /id\s*=\s*"your_kv_namespace_id_here"/;
+if (!kvPattern.test(wranglerContent)) {
+  console.error('错误: 在 wrangler.toml 中未找到匹配的 KV 命名空间 ID 模式');
+  console.log('当前内容:');
+  console.log(wranglerContent);
+  process.exit(1);
+}
+
 wranglerContent = wranglerContent.replace(
-  /id = "your_kv_namespace_id_here"/,
-  `id = "${process.env.VITE_CLOUDFLARE_KV_NAMESPACE_ID}"`
+  kvPattern,
+  `id = "${kvNamespaceId}"`
 );
 
 // 替换域名（确保替换所有出现的域名）
 const domainValue = process.env.VITE_SHORT_URL_DOMAIN;
+if (!domainValue) {
+  console.error('错误: VITE_SHORT_URL_DOMAIN 环境变量为空');
+  process.exit(1);
+}
+
+console.log(`短链接域名: ${domainValue}`);
+console.log('替换域名...');
+
+const domainPattern = /pattern\s*=\s*"g2\.al\/\*"\s*,\s*zone_name\s*=\s*"g2\.al"/g;
+if (!domainPattern.test(wranglerContent)) {
+  console.error('错误: 在 wrangler.toml 中未找到匹配的域名模式');
+  console.log('当前内容:');
+  console.log(wranglerContent);
+  process.exit(1);
+}
+
 wranglerContent = wranglerContent.replace(
-  /pattern = "g2\.al\/\*", zone_name = "g2\.al"/g,
+  domainPattern,
   `pattern = "${domainValue}/*", zone_name = "${domainValue}"`
 );
 
@@ -83,11 +134,13 @@ wranglerContent = wranglerContent.replace(
 // 检查是否已经有 [vars] 部分
 if (!wranglerContent.includes('[vars]')) {
   // 如果没有，添加 [vars] 部分
+  console.log('添加 [vars] 部分到 wrangler.toml');
   wranglerContent += '\n\n[vars]\n';
 }
 
 // 添加或更新环境变量
 // 注意：这里我们确保所有必要的环境变量都会被传递给 Worker
+console.log('同步环境变量到 wrangler.toml...');
 const envVars = {
   'VITE_CLOUDFLARE_ACCOUNT_ID': process.env.VITE_CLOUDFLARE_ACCOUNT_ID,
   'VITE_CLOUDFLARE_API_TOKEN': process.env.VITE_CLOUDFLARE_API_TOKEN,
@@ -110,7 +163,21 @@ Object.entries(envVars).forEach(([key, value]) => {
   }
 });
 
+// 检查内容是否被修改
+if (wranglerContent === originalContent) {
+  console.error('错误: wrangler.toml 内容未被修改，替换操作可能失败');
+  process.exit(1);
+}
+
+// 写入更新后的配置文件
 fs.writeFileSync(wranglerPath, wranglerContent);
+console.log('已写入更新后的 wrangler.toml 文件');
+
+// 打印更新后的内容（部分）
+console.log('更新后的 wrangler.toml 内容片段:');
+const contentLines = wranglerContent.split('\n');
+const kvLines = contentLines.filter(line => line.includes('kv_namespaces') || line.includes('URL_SHORTENER') || line.includes('binding'));
+console.log(kvLines.join('\n'));
 
 console.log('已更新 wrangler.toml 配置，同步了环境变量');
 console.log(`使用域名: ${domainValue}`);

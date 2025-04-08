@@ -115,6 +115,68 @@ npm run deploy:worker
 - 更新 `wrangler.toml` 配置，包括 KV 命名空间 ID、域名和环境变量
 - 使用 Wrangler 部署 Worker
 
+## 处理部署错误
+
+### KV 命名空间 ID 错误
+
+如果您遇到以下错误：
+
+```
+KV namespace 'your_kv_namespace_id_here' is not valid. [code: 10042]
+```
+
+这表示 `wrangler.toml` 中的 KV 命名空间 ID 未被正确替换。有两种解决方法：
+
+#### 方法 1：使用修复脚本
+
+我们提供了一个简单的修复脚本，可以直接设置正确的 KV 命名空间 ID 和域名：
+
+```bash
+node fix-deploy.js <您的KV命名空间ID> <您的域名>
+```
+
+例如：
+
+```bash
+node fix-deploy.js d3f1a2b3c4d5e6f7g8h9 example.com
+```
+
+此脚本将：
+1. 创建一个新的 `wrangler.toml` 文件，使用您提供的 KV 命名空间 ID 和域名
+2. 将 `VITE_SHORT_URL_DOMAIN` 环境变量添加到 `[vars]` 部分
+3. 部署 Worker
+
+#### 方法 2：手动编辑 wrangler.toml
+
+您也可以手动编辑 `wrangler.toml` 文件，确保 KV 命名空间 ID 和域名正确：
+
+1. 打开 `wrangler.toml` 文件
+2. 找到以下部分并修改：
+
+```toml
+kv_namespaces = [
+  { binding = "URL_SHORTENER", id = "您的KV命名空间ID" }
+]
+
+routes = [
+  { pattern = "您的域名/*", zone_name = "您的域名" }
+]
+```
+
+3. 保存文件并运行：
+
+```bash
+npx wrangler deploy
+```
+
+### 获取 KV 命名空间 ID
+
+如果您不知道您的 KV 命名空间 ID，可以通过以下步骤获取：
+
+1. 登录 Cloudflare 仪表板
+2. 导航到 Workers & Pages > KV
+3. 找到您的 KV 命名空间，ID 将显示在列表中
+
 ## 故障排除
 
 如果部署失败，请检查：
