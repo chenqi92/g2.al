@@ -78,9 +78,39 @@ wranglerContent = wranglerContent.replace(
   `{ pattern = "${process.env.VITE_SHORT_URL_DOMAIN}/*", zone_name = "${process.env.VITE_SHORT_URL_DOMAIN}" }`
 );
 
+// 同步环境变量到 wrangler.toml
+// 检查是否已经有 [vars] 部分
+if (!wranglerContent.includes('[vars]')) {
+  // 如果没有，添加 [vars] 部分
+  wranglerContent += '\n\n[vars]\n';
+}
+
+// 添加或更新环境变量
+const envVars = {
+  'VITE_CLOUDFLARE_ACCOUNT_ID': process.env.VITE_CLOUDFLARE_ACCOUNT_ID,
+  'VITE_CLOUDFLARE_API_TOKEN': process.env.VITE_CLOUDFLARE_API_TOKEN,
+  'VITE_CLOUDFLARE_KV_NAMESPACE_ID': process.env.VITE_CLOUDFLARE_KV_NAMESPACE_ID,
+  'VITE_SHORT_URL_DOMAIN': process.env.VITE_SHORT_URL_DOMAIN
+};
+
+// 检查每个环境变量是否已经在 wrangler.toml 中
+Object.entries(envVars).forEach(([key, value]) => {
+  const regex = new RegExp(`${key}\\s*=\\s*"[^"]*"`, 'g');
+  if (wranglerContent.match(regex)) {
+    // 如果已存在，更新值
+    wranglerContent = wranglerContent.replace(regex, `${key} = "${value}"`);
+  } else {
+    // 如果不存在，添加到 [vars] 部分
+    const varsSectionIndex = wranglerContent.indexOf('[vars]') + '[vars]'.length;
+    wranglerContent = wranglerContent.slice(0, varsSectionIndex) + 
+      `\n${key} = "${value}"` + 
+      wranglerContent.slice(varsSectionIndex);
+  }
+});
+
 fs.writeFileSync(wranglerPath, wranglerContent);
 
-console.log('已更新 wrangler.toml 配置');
+console.log('已更新 wrangler.toml 配置，同步了环境变量');
 
 // 部署 Worker
 try {

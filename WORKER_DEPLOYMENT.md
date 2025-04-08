@@ -42,6 +42,15 @@ VITE_SHORT_URL_DOMAIN=g2.al
 
 这些变量将在 Cloudflare Pages 构建过程中自动可用。
 
+## 环境变量同步
+
+部署脚本会自动将环境变量同步到 `wrangler.toml` 文件中。这意味着：
+
+1. 在本地/其他主机构建环境中，`.env` 文件中的环境变量会被同步到 `wrangler.toml` 的 `[vars]` 部分
+2. 在 Cloudflare Pages 构建环境中，Cloudflare 环境变量会被同步到 `wrangler.toml` 的 `[vars]` 部分
+
+这样，无论您在哪种环境中部署，Worker 都能使用相同的环境变量配置。
+
 ## 部署步骤
 
 1. 安装依赖：
@@ -60,7 +69,7 @@ npm run deploy:worker
 - 检测当前构建环境（Cloudflare Pages 或本地/其他主机）
 - 根据环境选择使用 Cloudflare 环境变量或 `.env` 文件
 - 检查必要的环境变量
-- 更新 `wrangler.toml` 配置
+- 更新 `wrangler.toml` 配置，包括 KV 命名空间 ID、域名和环境变量
 - 使用 Wrangler 部署 Worker
 
 ## 故障排除
