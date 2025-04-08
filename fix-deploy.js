@@ -1,36 +1,38 @@
 #!/usr/bin/env node
 
 /**
- * Cloudflare Worker 部署修复脚本
+ * Cloudflare Worker 部署修复脚本 (Windows 兼容版本)
  * 
- * 使用方法:
- * node fix-deploy.js <KV_NAMESPACE_ID> <DOMAIN>
+ * 使用方法：
+ * node fix-deploy.js <KV命名空间ID> <域名>
  * 
  * 例如:
- * node fix-deploy.js abc123def456 example.com
+ * node fix-deploy.js a1b2c3d4e5f6g7h8i9j0 g2.al
  */
 
+// 使用 require 而非 import 以兼容所有环境
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
 // 获取命令行参数
-const kvNamespaceId = process.argv[2];
-const domain = process.argv[3];
+const args = process.argv.slice(2);
+const kvNamespaceId = args[0];
+const domain = args[1] || 'g2.al';
 
-if (!kvNamespaceId || !domain) {
-  console.error('错误: 缺少必要的参数');
-  console.error('使用方法: node fix-deploy.js <KV_NAMESPACE_ID> <DOMAIN>');
-  console.error('例如: node fix-deploy.js abc123def456 example.com');
+if (!kvNamespaceId) {
+  console.error('错误: 请提供 KV 命名空间 ID');
+  console.log('用法: node fix-deploy.js <KV命名空间ID> <域名>');
+  console.log('例如: node fix-deploy.js a1b2c3d4e5f6g7h8i9j0 g2.al');
   process.exit(1);
 }
 
 console.log(`使用 KV 命名空间 ID: ${kvNamespaceId}`);
 console.log(`使用域名: ${domain}`);
 
-// 创建新的 wrangler.toml 文件
-const wranglerContent = `name = "url-shortener"
-main = "cloudflare-worker.js"
+// 创建 wrangler.toml 文件
+const wranglerContent = `name = "g2"
+main = "cloudflare-worker.js" 
 compatibility_date = "2025-04-07"
 
 # KV 命名空间绑定
@@ -48,11 +50,11 @@ routes = [
 VITE_SHORT_URL_DOMAIN = "${domain}"
 `;
 
-// 写入更新后的配置文件
+// 写入 wrangler.toml 文件
 const wranglerPath = path.join(__dirname, 'wrangler.toml');
 fs.writeFileSync(wranglerPath, wranglerContent);
 
-console.log('已创建新的 wrangler.toml 文件内容:');
+console.log('已创建 wrangler.toml 文件:');
 console.log(wranglerContent);
 
 // 部署 Worker
