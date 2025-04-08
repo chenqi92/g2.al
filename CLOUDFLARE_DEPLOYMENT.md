@@ -31,6 +31,62 @@ VITE_CLOUDFLARE_KV_NAMESPACE_ID=your_kv_namespace_id_here
 VITE_SHORT_URL_DOMAIN=g2.al
 ```
 
+## Cloudflare Pages 与 Worker 的协作
+
+本项目使用 Cloudflare Pages 托管前端应用程序，同时使用 Cloudflare Worker 处理短链接重定向。它们的工作方式如下：
+
+### 1. 工作流程
+
+1. 当用户访问您的域名时，请求首先到达 Cloudflare Worker
+2. Worker 检查请求路径：
+   - 如果是根路径('/')、静态资源或前端路由：传递给 Cloudflare Pages 托管的前端应用
+   - 如果是短链接（如 'g2.al/abc123'）：从 KV 存储中查找并重定向
+   - 如果是 API 请求('/api/...')：由 Worker 处理
+
+### 2. Worker 代码中的路由处理
+
+Worker 代码中包含了以下路由处理逻辑：
+
+```javascript
+// 检查是否是网站根路径或静态资源
+if (pathname === '/' || pathname.startsWith('/index.html') || 
+    pathname.startsWith('/assets/') || pathname.startsWith('/src/') || 
+    pathname.includes('.js') || pathname.includes('.css') || 
+    pathname.includes('.svg') || pathname.includes('.ico')) {
+  // 将请求传递给Cloudflare Pages托管的前端
+  return fetch(request);
+}
+
+// 检查是否是短链接请求
+if (hostname === SHORT_DOMAIN && pathname.length > 1) {
+  return handleShortUrl(pathname.substring(1), URL_SHORTENER);
+}
+
+// 对于 API 端点
+if (pathname.startsWith('/api/')) {
+  return handleApiRequest(request, pathname, URL_SHORTENER);
+}
+
+// 其他路径（如 /url-shortener, /temp-mail 等前端路由）传递给Cloudflare Pages
+return fetch(request);
+```
+
+### 3. 为何需要这种协作方式
+
+这种架构允许：
+- 使用 React Router 等客户端路由
+- 无需单独的后端服务器处理 API 请求
+- 短链接功能与前端应用共享同一域名
+- Cloudflare Pages 自动处理静态资源缓存和全球分发
+
+### 4. 部署顺序
+
+为确保系统正常工作，请按以下顺序部署：
+
+1. 首先部署前端应用到 Cloudflare Pages
+2. 然后部署 Worker 与 KV 存储
+3. 确保 Worker 路由配置为处理所有请求（即 '/*'）
+
 ## 部署步骤
 
 1. 首先确保已经设置好环境变量
@@ -152,6 +208,21 @@ routes = [
 
 ## 故障排除
 
+### 前端页面不显示
+
+如果部署后前端页面不显示，检查以下几点：
+
+1. 确保 Worker 的路由配置正确 - 应该处理所有请求（'/*'）
+2. 检查 Worker 代码是否包含了将前端请求传递给 Cloudflare Pages 的逻辑
+3. 查看 Cloudflare Pages 构建是否成功
+4. 查看浏览器控制台是否有错误
+5. 确保域名的 DNS 设置正确，指向 Cloudflare
+
+修复方法：
+1. 更新 Worker 代码，确保包含根路径处理逻辑
+2. 重新部署 Worker
+3. 在 Cloudflare 控制面板中检查路由设置
+
 ### "require is not defined in ES module scope" 错误
 
 如果遇到以下错误：
@@ -223,13 +294,14 @@ KV namespace 'undefined' is not valid. [code: 10042]
    - 本地/VPS: 设置 `VITE_CLOUDFLARE_KV_NAMESPACE_ID` 环境变量
 2. 设置 `VITE_SHORT_URL_DOMAIN` 环境变量（所有环境中都需要）
 3. 使用正确的 ES 模块语法脚本 (`deploy-cf-worker.mjs`)
+4. Worker 代码正确处理前端请求和短链接请求
 
 ## 测试部署
 
-部署成功后，您可以通过访问短链接来测试 Worker 是否正常工作：
+部署成功后，您可以测试以下功能：
 
-```
-https://your-domain.com/your-short-code
-```
+1. 访问网站主页 (`https://your-domain.com/`)，应该显示前端应用
+2. 访问短链接 (`https://your-domain.com/your-short-code`)，应该重定向到原始 URL
+3. 访问 API 端点 (`https://your-domain.com/api/url?code=your-short-code`)，应该返回 JSON 响应
 
-这里的 `your-domain.com` 是您配置的 `VITE_SHORT_URL_DOMAIN` 值。如果一切正常，您将被重定向到原始 URL。 
+如果一切正常，您的系统应该已经设置完成，能够处理短链接并显示前端应用程序。 

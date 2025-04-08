@@ -21,6 +21,15 @@ export default {
     const url = new URL(request.url);
     const { pathname, hostname } = url;
 
+    // 检查是否是网站根路径或静态资源
+    if (pathname === '/' || pathname.startsWith('/index.html') || 
+        pathname.startsWith('/assets/') || pathname.startsWith('/src/') || 
+        pathname.includes('.js') || pathname.includes('.css') || 
+        pathname.includes('.svg') || pathname.includes('.ico')) {
+      // 将请求传递给Cloudflare Pages托管的前端
+      return fetch(request);
+    }
+
     // 检查是否是短链接请求
     if (hostname === SHORT_DOMAIN && pathname.length > 1) {
       return handleShortUrl(pathname.substring(1), URL_SHORTENER);
@@ -31,8 +40,9 @@ export default {
       return handleApiRequest(request, pathname, URL_SHORTENER);
     }
 
-    // 否则返回 404
-    return new Response('Not Found', { status: 404 });
+    // 其他路径（如 /url-shortener, /temp-mail 等前端路由）传递给Cloudflare Pages
+    // 这确保了前端路由可以正常工作
+    return fetch(request);
   }
 };
 
