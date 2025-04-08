@@ -19,6 +19,7 @@
 在 Cloudflare Pages 项目设置中，配置以下环境变量：
 
 - `VITE_SHORT_URL_DOMAIN` - 您的短链接域名 (如 "g2.al")
+- `PAGES_DOMAIN` - 您的Cloudflare Pages域名 (如 "g2-al.pages.dev")
 
 对于 KV 命名空间，请在 Cloudflare Pages 的 Worker 设置中直接绑定 KV 命名空间。部署脚本会自动检测是否在 Cloudflare Pages 环境中运行，并跳过 KV 配置。
 
@@ -29,6 +30,7 @@
 ```
 VITE_CLOUDFLARE_KV_NAMESPACE_ID=your_kv_namespace_id_here
 VITE_SHORT_URL_DOMAIN=g2.al
+PAGES_DOMAIN=g2-al.pages.dev
 ```
 
 ## Cloudflare Pages 与 Worker 的协作
@@ -49,16 +51,20 @@ Worker 代码中包含了以下路由处理逻辑：
 
 ```javascript
 // 检查是否是网站根路径或静态资源
-if (pathname === '/' || pathname.startsWith('/index.html') || 
+if (pathname === '/' || pathname === '/index.html' || 
     pathname.startsWith('/assets/') || pathname.startsWith('/src/') || 
     pathname.includes('.js') || pathname.includes('.css') || 
     pathname.includes('.svg') || pathname.includes('.ico')) {
   // 将请求传递给Cloudflare Pages托管的前端
-  return fetch(request);
+  return fetch(pagesUrl, {
+    method: request.method,
+    headers: request.headers,
+    body: request.body
+  });
 }
 
 // 检查是否是短链接请求
-if (hostname === SHORT_DOMAIN && pathname.length > 1) {
+if ((hostname === SHORT_DOMAIN || isWorkersDev) && pathname.length > 1) {
   return handleShortUrl(pathname.substring(1), URL_SHORTENER);
 }
 
@@ -68,7 +74,7 @@ if (pathname.startsWith('/api/')) {
 }
 
 // 其他路径（如 /url-shortener, /temp-mail 等前端路由）传递给Cloudflare Pages
-return fetch(request);
+return fetch(pagesUrl, {...});
 ```
 
 ### 3. 为何需要这种协作方式
@@ -87,11 +93,41 @@ return fetch(request);
 2. 然后部署 Worker 与 KV 存储
 3. 确保 Worker 路由配置为处理所有请求（即 '/*'）
 
+## 启用 workers.dev 域名访问
+
+为了便于测试和调试，您可以启用 workers.dev 域名访问：
+
+1. 在 `wrangler.toml` 文件中添加以下配置：
+   ```toml
+   # 启用workers.dev域名
+   workers_dev = true
+   ```
+
+2. 这样部署后可以通过两种方式访问您的应用：
+   - 自定义域名：`https://g2.al`
+   - Workers域名：`https://g2.your_account.workers.dev`
+
+3. 如果您是使用 `deploy-cf-worker.mjs` 脚本部署，此设置已自动添加
+
+### Workers.dev 域名自动禁用问题
+
+如果您发现每次部署后 workers.dev 域名会自动禁用，可能原因如下：
+
+1. 您的 Cloudflare 账户设置中禁用了 workers.dev 域名
+2. 您的 wrangler.toml 文件中设置了 `workers_dev = false`
+3. 您的部署脚本在生成 wrangler.toml 时没有包含 workers_dev 配置
+
+解决方法：
+
+1. 在 Cloudflare Dashboard 中，前往 Workers & Pages > Overview > Settings，确保 "workers.dev subdomain" 已启用
+2. 在 `wrangler.toml` 文件中明确设置 `workers_dev = true`
+3. 使用我们提供的 `deploy-cf-worker.mjs` 脚本部署，其中已包含此配置
+
 ## 部署步骤
 
 1. 首先确保已经设置好环境变量
-   - Cloudflare Pages: 仅需设置 `VITE_SHORT_URL_DOMAIN` 并手动绑定 KV
-   - 本地/VPS: 需设置 `VITE_CLOUDFLARE_KV_NAMESPACE_ID` 和 `VITE_SHORT_URL_DOMAIN`
+   - Cloudflare Pages: 仅需设置 `VITE_SHORT_URL_DOMAIN`、`PAGES_DOMAIN` 并手动绑定 KV
+   - 本地/VPS: 需设置 `VITE_CLOUDFLARE_KV_NAMESPACE_ID`、`VITE_SHORT_URL_DOMAIN` 和 `PAGES_DOMAIN`
 
 2. 在项目根目录执行以下命令部署 Worker：
 
@@ -111,7 +147,7 @@ npm run deploy:worker
 1. 检测当前环境（Cloudflare Pages 或本地/VPS）
 2. 在 Cloudflare Pages 环境中：完全跳过 KV 命名空间配置（使用已绑定的 KV）
 3. 在本地/VPS 环境中：使用环境变量中的 KV 命名空间 ID
-4. 自动生成 `wrangler.toml` 配置文件
+4. 自动生成 `wrangler.toml` 配置文件，包括启用 workers.dev 域名访问
 5. 使用 `npx wrangler deploy` 命令部署 Worker
 
 ## 在 Cloudflare Pages 中设置 KV 绑定
@@ -148,8 +184,8 @@ routes = [
 
 请确保在部署前设置了以下环境变量：
 
-- Cloudflare Pages 环境: `VITE_SHORT_URL_DOMAIN`
-- 本地/VPS 环境: `VITE_CLOUDFLARE_KV_NAMESPACE_ID` 和 `VITE_SHORT_URL_DOMAIN`
+- Cloudflare Pages 环境: `VITE_SHORT_URL_DOMAIN` 和 `PAGES_DOMAIN`
+- 本地/VPS 环境: `VITE_CLOUDFLARE_KV_NAMESPACE_ID`、`VITE_SHORT_URL_DOMAIN` 和 `PAGES_DOMAIN`
 
 如果没有设置这些变量，部署将会失败。
 
@@ -159,7 +195,9 @@ routes = [
 
 1. 登录 Cloudflare 控制面板
 2. 进入 Pages > 您的项目 > 设置 > 环境变量
-3. 添加 `VITE_SHORT_URL_DOMAIN` 变量并设置值
+3. 添加所需的环境变量：
+   - `VITE_SHORT_URL_DOMAIN`：您的短链接域名
+   - `PAGES_DOMAIN`：您的 Cloudflare Pages 域名
 
 在本地/VPS环境中，您可以使用 `.env` 文件或直接设置系统环境变量。
 
@@ -176,13 +214,18 @@ compatibility_date = "2025-04-07"
 
 # 在Cloudflare Pages中，KV命名空间已手动绑定，无需在此配置
 
-# 路由配置使用环境变量
+# 启用workers.dev域名
+workers_dev = true
+
+# 路由配置
 routes = [
-  { pattern = "$VITE_SHORT_URL_DOMAIN/*", zone_name = "$VITE_SHORT_URL_DOMAIN" }
+  { pattern = "g2.al/*", zone_name = "g2.al" }
 ]
 
 # 环境变量配置
 [vars]
+VITE_SHORT_URL_DOMAIN = "g2.al"
+PAGES_DOMAIN = "g2-al.pages.dev"
 ```
 
 ### 本地/VPS 环境中的配置
@@ -197,13 +240,18 @@ kv_namespaces = [
   { binding = "URL_SHORTENER", id = "your-kv-namespace-id" }
 ]
 
-# 路由配置使用环境变量
+# 启用workers.dev域名
+workers_dev = true
+
+# 路由配置
 routes = [
-  { pattern = "$VITE_SHORT_URL_DOMAIN/*", zone_name = "$VITE_SHORT_URL_DOMAIN" }
+  { pattern = "g2.al/*", zone_name = "g2.al" }
 ]
 
 # 环境变量配置
 [vars]
+VITE_SHORT_URL_DOMAIN = "g2.al"
+PAGES_DOMAIN = "g2-al.pages.dev"
 ```
 
 ## 故障排除
@@ -217,11 +265,23 @@ routes = [
 3. 查看 Cloudflare Pages 构建是否成功
 4. 查看浏览器控制台是否有错误
 5. 确保域名的 DNS 设置正确，指向 Cloudflare
+6. 检查 Worker 日志以确认请求被正确路由
 
 修复方法：
 1. 更新 Worker 代码，确保包含根路径处理逻辑
-2. 重新部署 Worker
-3. 在 Cloudflare 控制面板中检查路由设置
+2. 确保 `PAGES_DOMAIN` 环境变量设置正确，指向您的 Cloudflare Pages 域名
+3. 使用 Workers 日志记录调试信息
+4. 重新部署 Worker
+5. 在 Cloudflare 控制面板中检查路由设置
+
+### workers.dev 域名被禁用
+
+如果发现 workers.dev 域名被自动禁用：
+
+1. 在 `wrangler.toml` 中明确设置 `workers_dev = true`
+2. 检查 Cloudflare 账户设置中是否启用了 workers.dev 子域名
+3. 使用我们提供的 `deploy-cf-worker.mjs` 脚本部署，其已包含此配置
+4. 部署后，检查 Cloudflare Dashboard 中的设置
 
 ### "require is not defined in ES module scope" 错误
 
@@ -249,7 +309,7 @@ Error: A route pattern references an environment variable that doesn't exist
 
 或类似错误，这表示 Wrangler 无法找到您在 `wrangler.toml` 中引用的环境变量。解决方法：
 
-1. 确保在 Cloudflare Pages 或本地环境中正确设置了 `VITE_SHORT_URL_DOMAIN` 环境变量
+1. 确保在 Cloudflare Pages 或本地环境中正确设置了必要的环境变量
 2. 检查变量名称是否拼写正确
 3. 尝试重新运行部署命令
 
@@ -277,6 +337,17 @@ KV namespace 'undefined' is not valid. [code: 10042]
 
 确保已设置环境变量 `VITE_CLOUDFLARE_KV_NAMESPACE_ID`。
 
+## 查看 Worker 日志
+
+为了帮助排查问题，您可以查看 Worker 的日志：
+
+1. 登录 Cloudflare Dashboard
+2. 前往 Workers & Pages > g2（您的 Worker 名称）
+3. 点击 "Logs" 选项卡
+4. 点击 "Begin log stream" 开始查看实时日志
+
+您可以在 Worker 代码中使用 `console.log()` 添加更多日志信息，这些信息会显示在日志流中。
+
 ## 获取 KV 命名空间 ID
 
 如果您不知道您的 KV 命名空间 ID：
@@ -292,16 +363,22 @@ KV namespace 'undefined' is not valid. [code: 10042]
 1. 根据部署环境正确配置
    - Cloudflare Pages: 手动绑定 KV 命名空间，完全移除 wrangler.toml 中的 KV 配置
    - 本地/VPS: 设置 `VITE_CLOUDFLARE_KV_NAMESPACE_ID` 环境变量
-2. 设置 `VITE_SHORT_URL_DOMAIN` 环境变量（所有环境中都需要）
+2. 设置 `VITE_SHORT_URL_DOMAIN` 和 `PAGES_DOMAIN` 环境变量（所有环境中都需要）
 3. 使用正确的 ES 模块语法脚本 (`deploy-cf-worker.mjs`)
 4. Worker 代码正确处理前端请求和短链接请求
+5. 明确设置 `workers_dev = true` 以启用 workers.dev 域名访问
 
 ## 测试部署
 
-部署成功后，您可以测试以下功能：
+部署成功后，您可以通过多种方式测试：
 
-1. 访问网站主页 (`https://your-domain.com/`)，应该显示前端应用
-2. 访问短链接 (`https://your-domain.com/your-short-code`)，应该重定向到原始 URL
-3. 访问 API 端点 (`https://your-domain.com/api/url?code=your-short-code`)，应该返回 JSON 响应
+1. 通过自定义域名：
+   - 访问网站主页 (`https://your-domain.com/`)，应该显示前端应用
+   - 访问短链接 (`https://your-domain.com/your-short-code`)，应该重定向到原始 URL
+   - 访问 API 端点 (`https://your-domain.com/api/url?code=your-short-code`)，应该返回 JSON 响应
+
+2. 通过 workers.dev 域名（如果已启用）：
+   - 访问 `https://g2.your_account.workers.dev/`
+   - 访问 `https://g2.your_account.workers.dev/your-short-code`
 
 如果一切正常，您的系统应该已经设置完成，能够处理短链接并显示前端应用程序。 

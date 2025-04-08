@@ -28,6 +28,7 @@ console.log(`检测到运行环境: ${isCloudflarePages ? 'Cloudflare Pages' : '
 // 从环境变量中读取配置
 const kvNamespaceId = process.env.VITE_CLOUDFLARE_KV_NAMESPACE_ID;
 const domain = process.env.VITE_SHORT_URL_DOMAIN || 'g2.al';
+const pagesDomain = process.env.PAGES_DOMAIN || 'g2-al.pages.dev';
 
 if (!isCloudflarePages && !kvNamespaceId) {
   console.log('警告: 在本地/VPS环境中未找到 VITE_CLOUDFLARE_KV_NAMESPACE_ID 环境变量');
@@ -35,6 +36,7 @@ if (!isCloudflarePages && !kvNamespaceId) {
 }
 
 console.log(`使用域名: ${domain}`);
+console.log(`Pages域名: ${pagesDomain}`);
 if (!isCloudflarePages) {
   console.log(`使用 KV 命名空间 ID: ${kvNamespaceId || '未设置'}`);
 }
@@ -50,7 +52,10 @@ compatibility_date = "2025-04-07"
 
 # 在Cloudflare Pages中，KV命名空间已手动绑定，无需在此配置
 
-# 路由配置使用环境变量
+# 启用workers.dev域名
+workers_dev = true
+
+# 路由配置
 routes = [
   { pattern = "${domain}/*", zone_name = "${domain}" }
 ]
@@ -58,6 +63,7 @@ routes = [
 # 环境变量配置
 [vars]
 VITE_SHORT_URL_DOMAIN = "${domain}"
+PAGES_DOMAIN = "${pagesDomain}"
 `;
 } else {
   // 本地/VPS环境 - 包含KV命名空间配置
@@ -70,7 +76,10 @@ kv_namespaces = [
   { binding = "URL_SHORTENER", id = "${kvNamespaceId}" }
 ]
 
-# 路由配置使用环境变量
+# 启用workers.dev域名
+workers_dev = true
+
+# 路由配置
 routes = [
   { pattern = "${domain}/*", zone_name = "${domain}" }
 ]
@@ -78,6 +87,7 @@ routes = [
 # 环境变量配置
 [vars]
 VITE_SHORT_URL_DOMAIN = "${domain}"
+PAGES_DOMAIN = "${pagesDomain}"
 `;
 }
 
@@ -87,6 +97,7 @@ fs.writeFileSync(wranglerPath, wranglerContent, 'utf8');
 
 console.log('已创建 wrangler.toml 文件');
 console.log(`已设置域名: ${domain}`);
+console.log(`已启用workers.dev域名访问`);
 
 if (isCloudflarePages) {
   console.log('在Cloudflare Pages环境中运行，已完全移除KV命名空间配置（使用已绑定的KV）');
