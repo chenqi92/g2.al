@@ -43,21 +43,20 @@ if (!isCloudflarePages) {
 let wranglerContent;
 
 if (isCloudflarePages) {
-  // Cloudflare Pages环境 - 不包含KV命名空间配置
+  // Cloudflare Pages环境 - 完全移除KV命名空间配置部分
   wranglerContent = `name = "g2"
 main = "cloudflare-worker.js" 
 compatibility_date = "2025-04-07"
 
 # 在Cloudflare Pages中，KV命名空间已手动绑定，无需在此配置
 
-# 路由配置
+# 路由配置使用环境变量
 routes = [
-  { pattern = "${domain}/*", zone_name = "${domain}" }
+  { pattern = "$VITE_SHORT_URL_DOMAIN/*", zone_name = "$VITE_SHORT_URL_DOMAIN" }
 ]
 
 # 环境变量配置
 [vars]
-VITE_SHORT_URL_DOMAIN = "${domain}"
 `;
 } else {
   // 本地/VPS环境 - 包含KV命名空间配置
@@ -70,14 +69,13 @@ kv_namespaces = [
   { binding = "URL_SHORTENER", id = "${kvNamespaceId}" }
 ]
 
-# 路由配置
+# 路由配置使用环境变量
 routes = [
-  { pattern = "${domain}/*", zone_name = "${domain}" }
+  { pattern = "$VITE_SHORT_URL_DOMAIN/*", zone_name = "$VITE_SHORT_URL_DOMAIN" }
 ]
 
 # 环境变量配置
 [vars]
-VITE_SHORT_URL_DOMAIN = "${domain}"
 `;
 }
 
@@ -86,16 +84,33 @@ const wranglerPath = path.join(__dirname, 'wrangler.toml');
 fs.writeFileSync(wranglerPath, wranglerContent);
 
 console.log('已创建 wrangler.toml 文件');
+console.log(`已设置使用环境变量: VITE_SHORT_URL_DOMAIN=${domain}`);
+
 if (isCloudflarePages) {
-  console.log('在Cloudflare Pages环境中运行，已移除KV命名空间配置（使用已绑定的KV）');
+  console.log('在Cloudflare Pages环境中运行，已完全移除KV命名空间配置（使用已绑定的KV）');
+}
+
+// 在Cloudflare Pages环境中通过环境变量传递额外参数
+let deployCommand = 'npx wrangler deploy';
+if (isCloudflarePages) {
+  deployCommand = 'npx wrangler deploy --no-bundle';
 }
 
 // 部署 Worker
 try {
-  console.log('开始部署 Cloudflare Worker...');
-  execSync('npx wrangler deploy', { stdio: 'inherit' });
+  console.log(`开始部署 Cloudflare Worker，执行命令: ${deployCommand}`);
+  execSync(deployCommand, { stdio: 'inherit' });
   console.log('Worker 部署成功!');
 } catch (error) {
   console.error('部署失败:', error.message);
+  // 在出错时检查当前环境并生成更详细的错误信息
+  if (isCloudflarePages) {
+    console.error('在Cloudflare Pages环境中部署失败。请确保已在Cloudflare Pages控制台中正确绑定KV命名空间。');
+    console.error('绑定方法: Pages项目 > 设置 > Functions > KV命名空间绑定 > 添加绑定: URL_SHORTENER');
+    console.error('同时确保已设置 VITE_SHORT_URL_DOMAIN 环境变量。');
+  } else {
+    console.error('在本地/VPS环境中部署失败。请确保已设置正确的VITE_CLOUDFLARE_KV_NAMESPACE_ID环境变量。');
+    console.error('同时确保已设置 VITE_SHORT_URL_DOMAIN 环境变量。');
+  }
   process.exit(1);
 } 
