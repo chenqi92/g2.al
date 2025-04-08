@@ -29,7 +29,7 @@ VITE_SHORT_URL_DOMAIN=g2.al
 - `VITE_CLOUDFLARE_ACCOUNT_ID`：您的 Cloudflare 账户 ID
 - `VITE_CLOUDFLARE_API_TOKEN`：具有 Workers 和 KV 权限的 API 令牌
 - `VITE_CLOUDFLARE_KV_NAMESPACE_ID`：您创建的 KV 命名空间 ID
-- `VITE_SHORT_URL_DOMAIN`：您的短链接域名
+- `VITE_SHORT_URL_DOMAIN`：您的短链接域名（这非常重要，Worker 中的重定向逻辑依赖此值）
 
 ### Cloudflare Pages 构建环境
 
@@ -40,7 +40,49 @@ VITE_SHORT_URL_DOMAIN=g2.al
 - `VITE_CLOUDFLARE_KV_NAMESPACE_ID`
 - `VITE_SHORT_URL_DOMAIN`
 
-这些变量将在 Cloudflare Pages 构建过程中自动可用。
+**重要说明**：
+- `CF_PAGES` 变量无需手动配置，Cloudflare Pages 环境会自动设置为 `1`
+- 部署脚本会自动检测是否在 Cloudflare Pages 环境中运行
+
+## 配置文件说明
+
+### wrangler.toml
+
+`wrangler.toml` 文件中有几处关键配置会在部署时自动更新：
+
+1. **KV 命名空间配置**:
+   ```toml
+   kv_namespaces = [
+     { binding = "URL_SHORTENER", id = "your_kv_namespace_id_here" }
+   ]
+   ```
+   部署脚本会将 `your_kv_namespace_id_here` 替换为 `VITE_CLOUDFLARE_KV_NAMESPACE_ID` 环境变量的值。
+
+2. **路由配置**:
+   ```toml
+   routes = [
+     { pattern = "g2.al/*", zone_name = "g2.al" }
+   ]
+   ```
+   部署脚本会将 `g2.al` 替换为 `VITE_SHORT_URL_DOMAIN` 环境变量的值。
+
+3. **环境变量**:
+   ```toml
+   [vars]
+   # 环境变量将在部署时自动同步
+   ```
+   部署脚本会将所有必要的环境变量同步到此部分，包括 `VITE_SHORT_URL_DOMAIN`，这个变量在 Worker 代码中被用于识别短链接请求。
+
+## cloudflare-worker.js
+
+Worker 代码已更新为从环境变量读取域名配置：
+
+```js
+// 从环境变量中获取域名配置
+const SHORT_DOMAIN = env.VITE_SHORT_URL_DOMAIN || 'g2.al';
+```
+
+这确保了 Worker 使用与配置文件相同的域名。
 
 ## 环境变量同步
 
@@ -48,6 +90,7 @@ VITE_SHORT_URL_DOMAIN=g2.al
 
 1. 在本地/其他主机构建环境中，`.env` 文件中的环境变量会被同步到 `wrangler.toml` 的 `[vars]` 部分
 2. 在 Cloudflare Pages 构建环境中，Cloudflare 环境变量会被同步到 `wrangler.toml` 的 `[vars]` 部分
+3. KV 命名空间的 ID 和路由配置中的域名也会被自动更新
 
 这样，无论您在哪种环境中部署，Worker 都能使用相同的环境变量配置。
 
@@ -82,6 +125,7 @@ npm run deploy:worker
 2. Cloudflare API 令牌是否有足够的权限
 3. KV 命名空间 ID 是否正确
 4. 域名是否已在 Cloudflare 上注册并配置
+5. 确保 `VITE_SHORT_URL_DOMAIN` 环境变量与您实际使用的域名一致
 
 ## 手动部署
 
@@ -96,7 +140,7 @@ npx wrangler deploy
 部署成功后，您可以通过访问短链接来测试 Worker 是否正常工作：
 
 ```
-https://g2.al/your-short-code
+https://your-domain.com/your-short-code
 ```
 
-如果一切正常，您将被重定向到原始 URL。 
+这里的 `your-domain.com` 会自动替换为您配置的 `VITE_SHORT_URL_DOMAIN` 值。如果一切正常，您将被重定向到原始 URL。 

@@ -10,8 +10,8 @@
 // 获取 KV 命名空间
 const URL_SHORTENER = env.URL_SHORTENER;
 
-// 域名配置
-const SHORT_DOMAIN = 'g2.al';
+// 从环境变量中获取域名配置
+const SHORT_DOMAIN = env.VITE_SHORT_URL_DOMAIN || 'g2.al';
 
 /**
  * 处理请求的主函数

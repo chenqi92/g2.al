@@ -3,15 +3,18 @@ main = "cloudflare-worker.js"
 compatibility_date = "2025-04-07"
 
 # KV 命名空间绑定
+# 此处的 id 会在部署时被自动替换为 VITE_CLOUDFLARE_KV_NAMESPACE_ID 环境变量的值
 kv_namespaces = [
   { binding = "URL_SHORTENER", id = "your_kv_namespace_id_here" }
 ]
 
 # 路由配置
+# 此处的域名会在部署时被自动替换为 VITE_SHORT_URL_DOMAIN 环境变量的值
 routes = [
   { pattern = "g2.al/*", zone_name = "g2.al" }
 ]
 
 # 环境变量配置
+# 这些变量会在部署时由 deploy-worker.js 脚本自动从环境变量或 .env 文件同步
 [vars]
 # 环境变量将在部署时自动同步 

@@ -72,10 +72,11 @@ wranglerContent = wranglerContent.replace(
   `id = "${process.env.VITE_CLOUDFLARE_KV_NAMESPACE_ID}"`
 );
 
-// 替换域名
+// 替换域名（确保替换所有出现的域名）
+const domainValue = process.env.VITE_SHORT_URL_DOMAIN;
 wranglerContent = wranglerContent.replace(
-  /{ pattern = "g2\.al\/\*", zone_name = "g2\.al" }/,
-  `{ pattern = "${process.env.VITE_SHORT_URL_DOMAIN}/*", zone_name = "${process.env.VITE_SHORT_URL_DOMAIN}" }`
+  /pattern = "g2\.al\/\*", zone_name = "g2\.al"/g,
+  `pattern = "${domainValue}/*", zone_name = "${domainValue}"`
 );
 
 // 同步环境变量到 wrangler.toml
@@ -86,6 +87,7 @@ if (!wranglerContent.includes('[vars]')) {
 }
 
 // 添加或更新环境变量
+// 注意：这里我们确保所有必要的环境变量都会被传递给 Worker
 const envVars = {
   'VITE_CLOUDFLARE_ACCOUNT_ID': process.env.VITE_CLOUDFLARE_ACCOUNT_ID,
   'VITE_CLOUDFLARE_API_TOKEN': process.env.VITE_CLOUDFLARE_API_TOKEN,
@@ -111,6 +113,7 @@ Object.entries(envVars).forEach(([key, value]) => {
 fs.writeFileSync(wranglerPath, wranglerContent);
 
 console.log('已更新 wrangler.toml 配置，同步了环境变量');
+console.log(`使用域名: ${domainValue}`);
 
 // 部署 Worker
 try {
