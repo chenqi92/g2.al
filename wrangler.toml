@@ -13,7 +13,6 @@ routes = [
 # 环境变量配置
 [vars]
 VITE_SHORT_URL_DOMAIN = "g2.al"
-PAGES_DOMAIN = "g2-al.pages.dev" 
 
 [observability.logs]
 enabled = true
