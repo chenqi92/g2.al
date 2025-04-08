@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy:worker": "node deploy-cf-worker.js"
+    "deploy:worker": "node deploy-cf-worker.mjs"
   },
   "dependencies": {
     "@internationalized/date": "^3.5.2",

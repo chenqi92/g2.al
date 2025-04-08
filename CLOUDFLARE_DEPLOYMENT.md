@@ -36,6 +36,14 @@ npm run deploy:worker
 - 自动从 Cloudflare 环境变量中读取配置
 - 使用 Wrangler 部署 Worker
 
+## 关于部署脚本的说明
+
+项目使用了 ES 模块版本的部署脚本 `deploy-cf-worker.mjs`。这是因为 `package.json` 中设置了 `"type": "module"`，所以所有 `.js` 文件都会被视为 ES 模块。该脚本通过以下方式处理部署：
+
+1. 从 Cloudflare 环境变量中读取 KV 命名空间 ID 和域名
+2. 自动生成 `wrangler.toml` 配置文件
+3. 使用 `npx wrangler deploy` 命令部署 Worker
+
 ## wrangler.toml 文件说明
 
 `wrangler.toml` 文件配置如下：
@@ -61,6 +69,22 @@ routes = [
 ```
 
 ## 故障排除
+
+### "require is not defined in ES module scope" 错误
+
+如果遇到以下错误：
+
+```
+ReferenceError: require is not defined in ES module scope, you can use import instead
+```
+
+这是因为项目使用了 ES 模块（`"type": "module"` 在 `package.json` 中），但部署脚本使用了 CommonJS 的 `require` 语法。解决方法是：
+
+1. 使用 `deploy-cf-worker.mjs` 脚本（已经使用 ES 模块语法）
+2. 确保 `package.json` 中的部署命令使用此脚本：
+   ```json
+   "deploy:worker": "node deploy-cf-worker.mjs"
+   ```
 
 ### KV 命名空间 ID 错误
 
@@ -107,6 +131,7 @@ KV namespace 'VITE_CLOUDFLARE_KV_NAMESPACE_ID' is not valid. [code: 10042]
 1. Cloudflare 环境变量正确配置
 2. KV 命名空间 ID 是有效的
 3. 域名配置正确
+4. 使用正确的 ES 模块语法脚本 (`deploy-cf-worker.mjs`)
 
 ## 测试部署
 

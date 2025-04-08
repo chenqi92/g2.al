@@ -1,19 +1,24 @@
 #!/usr/bin/env node
 
 /**
- * Cloudflare Worker 部署脚本 - 统一版本
+ * Cloudflare Worker 部署脚本 - 统一版本 (ES 模块语法)
  * 
  * 此脚本会自动从Cloudflare环境变量中读取配置并部署Worker
  * 无需传递参数或修改脚本
  * 
  * 使用方法:
- * node deploy-cf-worker.js
+ * node deploy-cf-worker.mjs
  */
 
-// 使用 require 以兼容所有环境
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+// 使用ES模块导入
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// 获取当前文件的目录路径
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 从环境变量中读取配置
 const kvNamespaceId = process.env.VITE_CLOUDFLARE_KV_NAMESPACE_ID;
