@@ -52,11 +52,12 @@ compatibility_date = "2025-04-07"
 
 # 路由配置使用环境变量
 routes = [
-  { pattern = "$VITE_SHORT_URL_DOMAIN/*", zone_name = "$VITE_SHORT_URL_DOMAIN" }
+  { pattern = "${domain}/*", zone_name = "${domain}" }
 ]
 
 # 环境变量配置
 [vars]
+VITE_SHORT_URL_DOMAIN = "${domain}"
 `;
 } else {
   // 本地/VPS环境 - 包含KV命名空间配置
@@ -71,20 +72,21 @@ kv_namespaces = [
 
 # 路由配置使用环境变量
 routes = [
-  { pattern = "$VITE_SHORT_URL_DOMAIN/*", zone_name = "$VITE_SHORT_URL_DOMAIN" }
+  { pattern = "${domain}/*", zone_name = "${domain}" }
 ]
 
 # 环境变量配置
 [vars]
+VITE_SHORT_URL_DOMAIN = "${domain}"
 `;
 }
 
 // 写入 wrangler.toml 文件
 const wranglerPath = path.join(__dirname, 'wrangler.toml');
-fs.writeFileSync(wranglerPath, wranglerContent);
+fs.writeFileSync(wranglerPath, wranglerContent, 'utf8');
 
 console.log('已创建 wrangler.toml 文件');
-console.log(`已设置使用环境变量: VITE_SHORT_URL_DOMAIN=${domain}`);
+console.log(`已设置域名: ${domain}`);
 
 if (isCloudflarePages) {
   console.log('在Cloudflare Pages环境中运行，已完全移除KV命名空间配置（使用已绑定的KV）');
