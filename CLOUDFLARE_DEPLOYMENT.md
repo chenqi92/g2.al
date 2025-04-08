@@ -18,14 +18,25 @@
 
 在 Cloudflare Pages 项目设置中，配置以下环境变量：
 
-- `VITE_CLOUDFLARE_KV_NAMESPACE_ID` - 您的 KV 命名空间 ID
 - `VITE_SHORT_URL_DOMAIN` - 您的短链接域名 (如 "g2.al")
 
-这些环境变量将被 Worker 直接使用，无需额外配置。
+对于 KV 命名空间，请在 Cloudflare Pages 的 Worker 设置中直接绑定 KV 命名空间。部署脚本会自动检测是否在 Cloudflare Pages 环境中运行，并跳过 KV 配置。
+
+### 本地/VPS 环境中的环境变量配置
+
+在本地或 VPS 环境中，您需要创建 `.env` 文件或设置环境变量：
+
+```
+VITE_CLOUDFLARE_KV_NAMESPACE_ID=your_kv_namespace_id_here
+VITE_SHORT_URL_DOMAIN=g2.al
+```
 
 ## 部署步骤
 
 1. 首先确保已经设置好环境变量
+   - Cloudflare Pages: 仅需设置 `VITE_SHORT_URL_DOMAIN` 并手动绑定 KV
+   - 本地/VPS: 需设置 `VITE_CLOUDFLARE_KV_NAMESPACE_ID` 和 `VITE_SHORT_URL_DOMAIN`
+
 2. 在项目根目录执行以下命令部署 Worker：
 
 ```bash
@@ -33,20 +44,54 @@ npm run deploy:worker
 ```
 
 部署脚本将：
-- 自动从 Cloudflare 环境变量中读取配置
+- 自动检测当前环境（Cloudflare Pages 或本地/VPS）
+- 根据环境创建相应的 wrangler.toml 配置
 - 使用 Wrangler 部署 Worker
 
 ## 关于部署脚本的说明
 
 项目使用了 ES 模块版本的部署脚本 `deploy-cf-worker.mjs`。这是因为 `package.json` 中设置了 `"type": "module"`，所以所有 `.js` 文件都会被视为 ES 模块。该脚本通过以下方式处理部署：
 
-1. 从 Cloudflare 环境变量中读取 KV 命名空间 ID 和域名
-2. 自动生成 `wrangler.toml` 配置文件
-3. 使用 `npx wrangler deploy` 命令部署 Worker
+1. 检测当前环境（Cloudflare Pages 或本地/VPS）
+2. 在 Cloudflare Pages 环境中：跳过 KV 命名空间配置（使用已绑定的 KV）
+3. 在本地/VPS 环境中：使用环境变量中的 KV 命名空间 ID
+4. 自动生成 `wrangler.toml` 配置文件
+5. 使用 `npx wrangler deploy` 命令部署 Worker
+
+## 在 Cloudflare Pages 中设置 KV 绑定
+
+在 Cloudflare Pages 中，您需要手动绑定 KV 命名空间：
+
+1. 登录 Cloudflare 控制面板
+2. 进入 Pages > 您的项目 > 设置 > Functions > KV 命名空间绑定
+3. 添加 KV 命名空间绑定：
+   - 变量名称：`URL_SHORTENER`
+   - KV 命名空间：选择您的 KV 命名空间
 
 ## wrangler.toml 文件说明
 
-`wrangler.toml` 文件配置如下：
+根据部署环境，`wrangler.toml` 文件配置将有所不同：
+
+### Cloudflare Pages 环境中的配置
+
+```toml
+name = "g2"
+main = "cloudflare-worker.js"
+compatibility_date = "2025-04-07"
+
+# 在Cloudflare Pages中，KV命名空间已手动绑定，无需在此配置
+
+# 路由配置
+routes = [
+  { pattern = "your-domain.com/*", zone_name = "your-domain.com" }
+]
+
+# 环境变量配置
+[vars]
+VITE_SHORT_URL_DOMAIN = "your-domain.com"
+```
+
+### 本地/VPS 环境中的配置
 
 ```toml
 name = "g2"
@@ -55,17 +100,17 @@ compatibility_date = "2025-04-07"
 
 # KV 命名空间绑定
 kv_namespaces = [
-  { binding = "URL_SHORTENER", id = "VITE_CLOUDFLARE_KV_NAMESPACE_ID" }
+  { binding = "URL_SHORTENER", id = "your-kv-namespace-id" }
 ]
 
 # 路由配置
 routes = [
-  { pattern = "VITE_SHORT_URL_DOMAIN/*", zone_name = "VITE_SHORT_URL_DOMAIN" }
+  { pattern = "your-domain.com/*", zone_name = "your-domain.com" }
 ]
 
 # 环境变量配置
 [vars]
-# 这些环境变量会从Cloudflare控制台中直接获取
+VITE_SHORT_URL_DOMAIN = "your-domain.com"
 ```
 
 ## 故障排除
@@ -88,26 +133,20 @@ ReferenceError: require is not defined in ES module scope, you can use import in
 
 ### KV 命名空间 ID 错误
 
-如果您看到以下错误：
+如果在 VPS/本地环境中看到以下错误：
 
 ```
-KV namespace 'VITE_CLOUDFLARE_KV_NAMESPACE_ID' is not valid. [code: 10042]
+KV namespace 'undefined' is not valid. [code: 10042]
 ```
 
 ### 解决方案
 
-1. 确保 Cloudflare Pages 中设置了正确的环境变量：
-   - `VITE_CLOUDFLARE_KV_NAMESPACE_ID` - 您的真实 KV 命名空间 ID
-   - `VITE_SHORT_URL_DOMAIN` - 您的短链接域名
+1. 确保已设置环境变量 `VITE_CLOUDFLARE_KV_NAMESPACE_ID`
 
 2. 如果仍然有问题，可以手动编辑 `wrangler.toml` 文件：
    ```toml
    kv_namespaces = [
      { binding = "URL_SHORTENER", id = "您的实际KV命名空间ID" }
-   ]
-   
-   routes = [
-     { pattern = "您的实际域名/*", zone_name = "您的实际域名" }
    ]
    ```
 
@@ -128,10 +167,11 @@ KV namespace 'VITE_CLOUDFLARE_KV_NAMESPACE_ID' is not valid. [code: 10042]
 
 确保：
 
-1. Cloudflare 环境变量正确配置
-2. KV 命名空间 ID 是有效的
-3. 域名配置正确
-4. 使用正确的 ES 模块语法脚本 (`deploy-cf-worker.mjs`)
+1. 根据部署环境正确配置
+   - Cloudflare Pages: 手动绑定 KV 命名空间
+   - 本地/VPS: 设置 `VITE_CLOUDFLARE_KV_NAMESPACE_ID` 环境变量
+2. 域名配置正确 (`VITE_SHORT_URL_DOMAIN`)
+3. 使用正确的 ES 模块语法脚本 (`deploy-cf-worker.mjs`)
 
 ## 测试部署
 

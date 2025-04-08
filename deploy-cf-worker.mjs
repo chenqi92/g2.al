@@ -3,8 +3,9 @@
 /**
  * Cloudflare Worker 部署脚本 - 统一版本 (ES 模块语法)
  * 
- * 此脚本会自动从Cloudflare环境变量中读取配置并部署Worker
- * 无需传递参数或修改脚本
+ * 此脚本会自动检测部署环境并使用相应的配置：
+ * - 在Cloudflare Pages环境中：不配置KV命名空间（使用已绑定的KV）
+ * - 在本地/VPS环境中：使用环境变量中的KV命名空间ID
  * 
  * 使用方法:
  * node deploy-cf-worker.mjs
@@ -20,20 +21,47 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// 检测当前环境是否为Cloudflare Pages
+const isCloudflarePages = process.env.CF_PAGES === '1';
+console.log(`检测到运行环境: ${isCloudflarePages ? 'Cloudflare Pages' : '本地/VPS'}`);
+
 // 从环境变量中读取配置
 const kvNamespaceId = process.env.VITE_CLOUDFLARE_KV_NAMESPACE_ID;
 const domain = process.env.VITE_SHORT_URL_DOMAIN || 'g2.al';
 
-if (!kvNamespaceId) {
-  console.log('警告: 未找到 VITE_CLOUDFLARE_KV_NAMESPACE_ID 环境变量');
-  console.log('将使用 Cloudflare Pages 环境变量');
+if (!isCloudflarePages && !kvNamespaceId) {
+  console.log('警告: 在本地/VPS环境中未找到 VITE_CLOUDFLARE_KV_NAMESPACE_ID 环境变量');
+  console.log('这可能导致部署失败，请确保设置了此环境变量');
 }
 
-console.log(`使用 KV 命名空间 ID: ${kvNamespaceId || '从Cloudflare环境读取'}`);
 console.log(`使用域名: ${domain}`);
+if (!isCloudflarePages) {
+  console.log(`使用 KV 命名空间 ID: ${kvNamespaceId || '未设置'}`);
+}
 
-// 创建 wrangler.toml 文件
-const wranglerContent = `name = "g2"
+// 根据环境创建不同的wrangler.toml内容
+let wranglerContent;
+
+if (isCloudflarePages) {
+  // Cloudflare Pages环境 - 不包含KV命名空间配置
+  wranglerContent = `name = "g2"
+main = "cloudflare-worker.js" 
+compatibility_date = "2025-04-07"
+
+# 在Cloudflare Pages中，KV命名空间已手动绑定，无需在此配置
+
+# 路由配置
+routes = [
+  { pattern = "${domain}/*", zone_name = "${domain}" }
+]
+
+# 环境变量配置
+[vars]
+VITE_SHORT_URL_DOMAIN = "${domain}"
+`;
+} else {
+  // 本地/VPS环境 - 包含KV命名空间配置
+  wranglerContent = `name = "g2"
 main = "cloudflare-worker.js" 
 compatibility_date = "2025-04-07"
 
@@ -51,12 +79,16 @@ routes = [
 [vars]
 VITE_SHORT_URL_DOMAIN = "${domain}"
 `;
+}
 
 // 写入 wrangler.toml 文件
 const wranglerPath = path.join(__dirname, 'wrangler.toml');
 fs.writeFileSync(wranglerPath, wranglerContent);
 
 console.log('已创建 wrangler.toml 文件');
+if (isCloudflarePages) {
+  console.log('在Cloudflare Pages环境中运行，已移除KV命名空间配置（使用已绑定的KV）');
+}
 
 // 部署 Worker
 try {
