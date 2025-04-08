@@ -8,8 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy:worker": "node deploy-pass-args.js",
-    "fix:deploy": "node fix-deploy.js"
+    "deploy:worker": "node deploy-cf-worker.js"
   },
   "dependencies": {
     "@internationalized/date": "^3.5.2",

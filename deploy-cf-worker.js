@@ -1,33 +1,30 @@
 #!/usr/bin/env node
 
 /**
- * Cloudflare Worker 部署修复脚本 (Windows 兼容版本)
+ * Cloudflare Worker 部署脚本 - 统一版本
  * 
- * 使用方法：
- * node fix-deploy.js <KV命名空间ID> <域名>
+ * 此脚本会自动从Cloudflare环境变量中读取配置并部署Worker
+ * 无需传递参数或修改脚本
  * 
- * 例如:
- * node fix-deploy.js a1b2c3d4e5f6g7h8i9j0 g2.al
+ * 使用方法:
+ * node deploy-cf-worker.js
  */
 
-// 使用 require 而非 import 以兼容所有环境
+// 使用 require 以兼容所有环境
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// 获取命令行参数
-const args = process.argv.slice(2);
-const kvNamespaceId = args[0];
-const domain = args[1] || 'g2.al';
+// 从环境变量中读取配置
+const kvNamespaceId = process.env.VITE_CLOUDFLARE_KV_NAMESPACE_ID;
+const domain = process.env.VITE_SHORT_URL_DOMAIN || 'g2.al';
 
 if (!kvNamespaceId) {
-  console.error('错误: 请提供 KV 命名空间 ID');
-  console.log('用法: node fix-deploy.js <KV命名空间ID> <域名>');
-  console.log('例如: node fix-deploy.js a1b2c3d4e5f6g7h8i9j0 g2.al');
-  process.exit(1);
+  console.log('警告: 未找到 VITE_CLOUDFLARE_KV_NAMESPACE_ID 环境变量');
+  console.log('将使用 Cloudflare Pages 环境变量');
 }
 
-console.log(`使用 KV 命名空间 ID: ${kvNamespaceId}`);
+console.log(`使用 KV 命名空间 ID: ${kvNamespaceId || '从Cloudflare环境读取'}`);
 console.log(`使用域名: ${domain}`);
 
 // 创建 wrangler.toml 文件
@@ -54,8 +51,7 @@ VITE_SHORT_URL_DOMAIN = "${domain}"
 const wranglerPath = path.join(__dirname, 'wrangler.toml');
 fs.writeFileSync(wranglerPath, wranglerContent);
 
-console.log('已创建 wrangler.toml 文件:');
-console.log(wranglerContent);
+console.log('已创建 wrangler.toml 文件');
 
 // 部署 Worker
 try {
