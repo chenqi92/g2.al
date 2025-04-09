@@ -18,6 +18,9 @@
 
 ## 快速开始
 
+详细的设置与部署说明请参考：
+- [Cloudflare Pages 完整指南](./CLOUDFLARE_SETUP.md)
+
 ### 本地开发
 
 1. 克隆项目并安装依赖：
@@ -35,6 +38,7 @@ VITE_CLOUDFLARE_ACCOUNT_ID=your_account_id_here
 VITE_CLOUDFLARE_API_TOKEN=your_api_token_here
 VITE_CLOUDFLARE_KV_NAMESPACE_ID=your_kv_namespace_id_here
 VITE_SHORT_URL_DOMAIN=g2.al
+VITE_TEMP_EMAIL_DOMAINS=tempmail.io,mailtemp.org,10minutemail.com,throwawaymail.net,disposable.cc
 ```
 
 3. 使用 Wrangler 启动开发服务器：
@@ -62,6 +66,7 @@ npm run pages:deploy
    - `VITE_CLOUDFLARE_API_TOKEN`
    - `VITE_CLOUDFLARE_KV_NAMESPACE_ID`
    - `VITE_SHORT_URL_DOMAIN`
+   - `VITE_TEMP_EMAIL_DOMAINS`
 
 ## 项目结构
 
@@ -71,6 +76,7 @@ g2.al/
 ├── functions/          # Cloudflare Pages Functions
 │   ├── api/            # API 路由
 │   │   └── url.js      # URL API 端点
+│   │   └── tempMail.js # 临时邮箱 API 端点
 │   ├── [[path]].js     # 路径捕获函数，处理短链接
 │   └── _routes.json    # 路由配置
 ├── src/
@@ -86,12 +92,13 @@ g2.al/
 
 项目使用以下环境变量：
 
-| 变量名 | 描述 | 必需 |
-|--------|------|------|
-| VITE_CLOUDFLARE_ACCOUNT_ID | Cloudflare 账户 ID | ✅ |
-| VITE_CLOUDFLARE_API_TOKEN | Cloudflare API 令牌 | ✅ |
-| VITE_CLOUDFLARE_KV_NAMESPACE_ID | Cloudflare KV 命名空间 ID | ✅ |
-| VITE_SHORT_URL_DOMAIN | 短链接域名 | ✅ |
+| 变量名 | 描述 | 必需 | 默认值 |
+|--------|------|------|--------|
+| VITE_CLOUDFLARE_ACCOUNT_ID | Cloudflare 账户 ID | ✅ | - |
+| VITE_CLOUDFLARE_API_TOKEN | Cloudflare API 令牌 | ✅ | - |
+| VITE_CLOUDFLARE_KV_NAMESPACE_ID | Cloudflare KV 命名空间 ID | ✅ | - |
+| VITE_SHORT_URL_DOMAIN | 短链接域名 | ✅ | g2.al |
+| VITE_TEMP_EMAIL_DOMAINS | 临时邮箱域名列表，以逗号分隔 | ❌ | tempmail.io,mailtemp.org,10minutemail.com,throwawaymail.net,disposable.cc |
 
 ## 贡献
 
