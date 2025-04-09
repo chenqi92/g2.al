@@ -1,20 +1,30 @@
 /**
  * Cloudflare KV API client for managing short URLs
  */
+import { env } from './env';
 
 // Cloudflare API endpoint
 const CF_API_URL = 'https://api.cloudflare.com/client/v4';
 
-// Cloudflare account details from environment variables
-const CF_ACCOUNT_ID = import.meta.env.VITE_CLOUDFLARE_ACCOUNT_ID;
-const CF_API_TOKEN = import.meta.env.VITE_CLOUDFLARE_API_TOKEN;
-const CF_KV_NAMESPACE_ID = import.meta.env.VITE_CLOUDFLARE_KV_NAMESPACE_ID;
+// 使用env对象获取Cloudflare账户详细信息
+const CF_ACCOUNT_ID = env.CLOUDFLARE_ACCOUNT_ID;
+const CF_API_TOKEN = env.CLOUDFLARE_API_TOKEN;
+const CF_KV_NAMESPACE_ID = env.CLOUDFLARE_KV_NAMESPACE_ID;
+
+// 验证配置是否有效
+const isConfigValid = () => {
+  if (!CF_ACCOUNT_ID || !CF_API_TOKEN || !CF_KV_NAMESPACE_ID) {
+    console.error('Cloudflare API配置无效，请检查环境变量');
+    return false;
+  }
+  return true;
+};
 
 // Headers for Cloudflare API requests
-const headers = {
+const getHeaders = () => ({
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${CF_API_TOKEN}`
-};
+});
 
 /**
  * Stores a URL mapping in Cloudflare KV
@@ -28,12 +38,19 @@ export const storeUrl = async (
   originalUrl: string, 
   expirationTtl: number = 365 * 86400 // Default to 1 year
 ): Promise<{ success: boolean; error?: string }> => {
+  if (!isConfigValid()) {
+    return { 
+      success: false, 
+      error: '缺少必要的Cloudflare API配置。请检查环境变量设置。' 
+    };
+  }
+
   try {
     const response = await fetch(
       `${CF_API_URL}/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_KV_NAMESPACE_ID}/values/${shortCode}`,
       {
         method: 'PUT',
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify({
           value: originalUrl,
           metadata: {
@@ -67,12 +84,17 @@ export const storeUrl = async (
  * @returns Promise with the original URL or null if not found
  */
 export const getUrl = async (shortCode: string): Promise<string | null> => {
+  if (!isConfigValid()) {
+    console.error('Cloudflare API配置无效，无法获取URL');
+    return null;
+  }
+
   try {
     const response = await fetch(
       `${CF_API_URL}/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_KV_NAMESPACE_ID}/values/${shortCode}`,
       {
         method: 'GET',
-        headers
+        headers: getHeaders()
       }
     );
 
@@ -97,13 +119,18 @@ export const getUrl = async (shortCode: string): Promise<string | null> => {
  * @returns Promise indicating success
  */
 export const incrementClickCount = async (shortCode: string): Promise<boolean> => {
+  if (!isConfigValid()) {
+    console.error('Cloudflare API配置无效，无法更新点击计数');
+    return false;
+  }
+
   try {
     // First get the current value and metadata
     const response = await fetch(
       `${CF_API_URL}/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_KV_NAMESPACE_ID}/values/${shortCode}?metadata=true`,
       {
         method: 'GET',
-        headers
+        headers: getHeaders()
       }
     );
 
@@ -123,7 +150,7 @@ export const incrementClickCount = async (shortCode: string): Promise<boolean> =
       `${CF_API_URL}/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_KV_NAMESPACE_ID}/values/${shortCode}`,
       {
         method: 'PUT',
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify({
           value: originalUrl,
           metadata
@@ -143,13 +170,18 @@ export const incrementClickCount = async (shortCode: string): Promise<boolean> =
  * @returns Promise with statistics
  */
 export const getStats = async (): Promise<{ totalUrls: number; totalClicks: number }> => {
+  if (!isConfigValid()) {
+    console.error('Cloudflare API配置无效，无法获取统计信息');
+    return { totalUrls: 0, totalClicks: 0 };
+  }
+
   try {
     // List all keys in the KV namespace
     const response = await fetch(
       `${CF_API_URL}/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_KV_NAMESPACE_ID}/keys`,
       {
         method: 'GET',
-        headers
+        headers: getHeaders()
       }
     );
 
@@ -168,7 +200,7 @@ export const getStats = async (): Promise<{ totalUrls: number; totalClicks: numb
         `${CF_API_URL}/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_KV_NAMESPACE_ID}/metadata/${key.name}`,
         {
           method: 'GET',
-          headers
+          headers: getHeaders()
         }
       );
       
@@ -197,12 +229,17 @@ export const getStats = async (): Promise<{ totalUrls: number; totalClicks: numb
  * @returns Promise indicating success
  */
 export const deleteUrl = async (shortCode: string): Promise<boolean> => {
+  if (!isConfigValid()) {
+    console.error('Cloudflare API配置无效，无法删除URL');
+    return false;
+  }
+
   try {
     const response = await fetch(
       `${CF_API_URL}/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_KV_NAMESPACE_ID}/values/${shortCode}`,
       {
         method: 'DELETE',
-        headers
+        headers: getHeaders()
       }
     );
     

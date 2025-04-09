@@ -20,8 +20,13 @@ function checkRequiredEnvVars(): string[] {
   const missing: string[] = [];
   
   REQUIRED_ENV_VARS.forEach(varName => {
-    // @ts-expect-error - 动态访问import.meta.env
-    if (!import.meta.env[varName]) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (!(import.meta.env as any)[varName]) {
+        missing.push(varName);
+      }
+    } catch (e) {
+      console.warn(`检查环境变量 ${varName} 时出错:`, e);
       missing.push(varName);
     }
   });
@@ -40,8 +45,28 @@ export function runInitChecks(): void {
   if (missingVars.length > 0) {
     console.warn(`环境变量缺失: ${missingVars.join(', ')}`);
     console.log('将使用默认值代替，某些功能可能无法正常工作');
+    
+    if (missingVars.includes('VITE_CLOUDFLARE_ACCOUNT_ID') || 
+        missingVars.includes('VITE_CLOUDFLARE_API_TOKEN') ||
+        missingVars.includes('VITE_CLOUDFLARE_KV_NAMESPACE_ID')) {
+      console.warn('缺少关键的Cloudflare API凭据，API相关功能将不可用');
+      console.log('请在.env文件中添加这些环境变量或在Cloudflare Pages控制面板中配置');
+    }
   } else {
     console.log('所有必需的环境变量都已设置');
+  }
+  
+  // 检查环境变量的有效性
+  if (env.CLOUDFLARE_ACCOUNT_ID === '') {
+    console.warn('CLOUDFLARE_ACCOUNT_ID 未设置或为空');
+  }
+  
+  if (env.CLOUDFLARE_API_TOKEN === '') {
+    console.warn('CLOUDFLARE_API_TOKEN 未设置或为空');
+  }
+  
+  if (env.CLOUDFLARE_KV_NAMESPACE_ID === '') {
+    console.warn('CLOUDFLARE_KV_NAMESPACE_ID 未设置或为空');
   }
   
   // 检查临时邮箱域名配置
