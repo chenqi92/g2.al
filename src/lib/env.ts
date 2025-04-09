@@ -5,20 +5,20 @@
 
 // 环境变量
 interface EnvVars {
-  CLOUDFLARE_ACCOUNT_ID: string;
-  CLOUDFLARE_API_TOKEN: string;
-  CLOUDFLARE_KV_NAMESPACE_ID: string;
-  SHORT_URL_DOMAIN: string;
-  TEMP_EMAIL_DOMAINS: string[];
+  VITE_CLOUDFLARE_ACCOUNT_ID: string;
+  VITE_CLOUDFLARE_API_TOKEN: string;
+  VITE_CLOUDFLARE_KV_NAMESPACE_ID: string;
+  VITE_SHORT_URL_DOMAIN: string;
+  VITE_TEMP_EMAIL_DOMAINS: string[];
 }
 
 // 默认值
 const defaults: EnvVars = {
-  CLOUDFLARE_ACCOUNT_ID: '',
-  CLOUDFLARE_API_TOKEN: '',
-  CLOUDFLARE_KV_NAMESPACE_ID: '',
-  SHORT_URL_DOMAIN: 'g2.al',
-  TEMP_EMAIL_DOMAINS: ['tempmail.io', 'mailtemp.org', '10minutemail.com', 'throwawaymail.net', 'disposable.cc'],
+  VITE_CLOUDFLARE_ACCOUNT_ID: '',
+  VITE_CLOUDFLARE_API_TOKEN: '',
+  VITE_CLOUDFLARE_KV_NAMESPACE_ID: '',
+  VITE_SHORT_URL_DOMAIN: 'g2.al',
+  VITE_TEMP_EMAIL_DOMAINS: ['tempmail.io', 'mailtemp.org', '10minutemail.com', 'throwawaymail.net', 'disposable.cc'],
 };
 
 /**
@@ -64,11 +64,11 @@ export function getEnv(): EnvVars {
   );
 
   return {
-    CLOUDFLARE_ACCOUNT_ID: safeGetEnvVar('VITE_CLOUDFLARE_ACCOUNT_ID', defaults.CLOUDFLARE_ACCOUNT_ID),
-    CLOUDFLARE_API_TOKEN: safeGetEnvVar('VITE_CLOUDFLARE_API_TOKEN', defaults.CLOUDFLARE_API_TOKEN),
-    CLOUDFLARE_KV_NAMESPACE_ID: safeGetEnvVar('VITE_CLOUDFLARE_KV_NAMESPACE_ID', defaults.CLOUDFLARE_KV_NAMESPACE_ID),
-    SHORT_URL_DOMAIN: safeGetEnvVar('VITE_SHORT_URL_DOMAIN', defaults.SHORT_URL_DOMAIN),
-    TEMP_EMAIL_DOMAINS: parseEmailDomains(safeGetEnvVar('VITE_TEMP_EMAIL_DOMAINS')),
+    VITE_CLOUDFLARE_ACCOUNT_ID: safeGetEnvVar('VITE_CLOUDFLARE_ACCOUNT_ID', defaults.VITE_CLOUDFLARE_ACCOUNT_ID),
+    VITE_CLOUDFLARE_API_TOKEN: safeGetEnvVar('VITE_CLOUDFLARE_API_TOKEN', defaults.VITE_CLOUDFLARE_API_TOKEN),
+    VITE_CLOUDFLARE_KV_NAMESPACE_ID: safeGetEnvVar('VITE_CLOUDFLARE_KV_NAMESPACE_ID', defaults.VITE_CLOUDFLARE_KV_NAMESPACE_ID),
+    VITE_SHORT_URL_DOMAIN: safeGetEnvVar('VITE_SHORT_URL_DOMAIN', defaults.VITE_SHORT_URL_DOMAIN),
+    VITE_TEMP_EMAIL_DOMAINS: parseEmailDomains(safeGetEnvVar('VITE_TEMP_EMAIL_DOMAINS')),
   };
 }
 
@@ -77,14 +77,14 @@ export function getEnv(): EnvVars {
  */
 function parseEmailDomains(emailDomainsString?: string): string[] {
   if (!emailDomainsString) {
-    return defaults.TEMP_EMAIL_DOMAINS;
+    return defaults.VITE_TEMP_EMAIL_DOMAINS;
   }
   
   try {
     return emailDomainsString.split(',').map(domain => domain.trim());
   } catch (error) {
     console.error('解析邮箱域名失败:', error);
-    return defaults.TEMP_EMAIL_DOMAINS;
+    return defaults.VITE_TEMP_EMAIL_DOMAINS;
   }
 }
 

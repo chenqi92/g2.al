@@ -7,9 +7,9 @@ import { env } from './env';
 const CF_API_URL = 'https://api.cloudflare.com/client/v4';
 
 // 使用env对象获取Cloudflare账户详细信息
-const CF_ACCOUNT_ID = env.CLOUDFLARE_ACCOUNT_ID;
-const CF_API_TOKEN = env.CLOUDFLARE_API_TOKEN;
-const CF_KV_NAMESPACE_ID = env.CLOUDFLARE_KV_NAMESPACE_ID;
+const CF_ACCOUNT_ID = env.VITE_CLOUDFLARE_ACCOUNT_ID;
+const CF_API_TOKEN = env.VITE_CLOUDFLARE_API_TOKEN;
+const CF_KV_NAMESPACE_ID = env.VITE_CLOUDFLARE_KV_NAMESPACE_ID;
 
 // 验证配置是否有效
 const isConfigValid = () => {

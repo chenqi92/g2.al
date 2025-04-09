@@ -57,30 +57,30 @@ export function runInitChecks(): void {
   }
   
   // 检查环境变量的有效性
-  if (env.CLOUDFLARE_ACCOUNT_ID === '') {
-    console.warn('CLOUDFLARE_ACCOUNT_ID 未设置或为空');
+  if (env.VITE_CLOUDFLARE_ACCOUNT_ID === '') {
+    console.warn('VITE_CLOUDFLARE_ACCOUNT_ID 未设置或为空');
   }
   
-  if (env.CLOUDFLARE_API_TOKEN === '') {
-    console.warn('CLOUDFLARE_API_TOKEN 未设置或为空');
+  if (env.VITE_CLOUDFLARE_API_TOKEN === '') {
+    console.warn('VITE_CLOUDFLARE_API_TOKEN 未设置或为空');
   }
   
-  if (env.CLOUDFLARE_KV_NAMESPACE_ID === '') {
-    console.warn('CLOUDFLARE_KV_NAMESPACE_ID 未设置或为空');
+  if (env.VITE_CLOUDFLARE_KV_NAMESPACE_ID === '') {
+    console.warn('VITE_CLOUDFLARE_KV_NAMESPACE_ID 未设置或为空');
   }
   
   // 检查临时邮箱域名配置
-  if (env.TEMP_EMAIL_DOMAINS.length === 0) {
+  if (env.VITE_TEMP_EMAIL_DOMAINS.length === 0) {
     console.warn('未配置临时邮箱域名，将使用默认值');
   } else {
-    console.log(`已配置 ${env.TEMP_EMAIL_DOMAINS.length} 个临时邮箱域名`);
+    console.log(`已配置 ${env.VITE_TEMP_EMAIL_DOMAINS.length} 个临时邮箱域名`);
   }
   
   // 检查短链接域名配置
-  if (!env.SHORT_URL_DOMAIN) {
+  if (!env.VITE_SHORT_URL_DOMAIN) {
     console.warn('未配置短链接域名，将使用默认值 g2.al');
   } else {
-    console.log(`使用短链接域名: ${env.SHORT_URL_DOMAIN}`);
+    console.log(`使用短链接域名: ${env.VITE_SHORT_URL_DOMAIN}`);
   }
   
   console.log('初始化检查完成');
