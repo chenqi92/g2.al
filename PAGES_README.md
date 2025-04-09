@@ -1,4 +1,4 @@
-# G2.AL 短链接服务
+# G2.AL 短链接服务 - Cloudflare Pages Functions 实现
 
 这是一个基于 Cloudflare Pages Functions 和 KV 存储的短链接服务，提供快速、可靠的 URL 缩短功能。
 
@@ -43,25 +43,17 @@ VITE_SHORT_URL_DOMAIN=g2.al
 npm run pages:dev
 ```
 
-### Cloudflare Pages Functions 部署
+### 部署到 Cloudflare Pages
 
-短链接功能依赖于 Cloudflare Pages Functions 来处理重定向请求：
+1. 构建并部署项目：
 
 ```bash
 npm run pages:deploy
 ```
 
-在 Cloudflare Pages 控制面板中，您需要：
-
-1. 绑定 KV 命名空间：
-   - 变量名：`URL_SHORTENER`
-   - 选择您的 KV 命名空间
-
-2. 设置环境变量：
-   - `VITE_CLOUDFLARE_ACCOUNT_ID`
-   - `VITE_CLOUDFLARE_API_TOKEN`
-   - `VITE_CLOUDFLARE_KV_NAMESPACE_ID`
-   - `VITE_SHORT_URL_DOMAIN`
+2. 在 Cloudflare Pages 控制面板中配置：
+   - 绑定 KV 命名空间
+   - 设置环境变量
 
 ## 项目结构
 
@@ -82,6 +74,26 @@ g2.al/
 │   └── pages/          # 页面组件
 ```
 
+## Cloudflare Pages Functions 说明
+
+这个项目使用 Cloudflare Pages Functions 来处理 API 请求和短链接重定向：
+
+### 1. API 路由 (`functions/api/url.js`)
+
+处理 API 请求，如检查短链接是否存在：
+
+```
+GET /api/url?code=abc123
+```
+
+### 2. 路径捕获函数 (`functions/[[path]].js`)
+
+捕获所有不匹配其他路由的请求，检查是否是短链接请求。如果是，则从 KV 存储中查找并重定向；如果不是，则让请求继续，由前端 SPA 路由处理。
+
+### 3. 路由配置 (`functions/_routes.json`)
+
+定义路由规则和优先级，确保 API 请求先被处理，然后是短链接捕获。
+
 ## 环境变量
 
 项目使用以下环境变量：
@@ -92,6 +104,20 @@ g2.al/
 | VITE_CLOUDFLARE_API_TOKEN | Cloudflare API 令牌 | ✅ |
 | VITE_CLOUDFLARE_KV_NAMESPACE_ID | Cloudflare KV 命名空间 ID | ✅ |
 | VITE_SHORT_URL_DOMAIN | 短链接域名 | ✅ |
+
+## Cloudflare Pages 设置
+
+部署到 Cloudflare Pages 后，需要进行以下设置：
+
+1. 进入项目的 **Settings** > **Functions**
+2. 在 **KV Namespace Bindings** 部分，添加绑定：
+   - 变量名：`URL_SHORTENER`
+   - KV 命名空间：选择您的命名空间
+3. 在 **Environment Variables** 部分，添加以下环境变量：
+   - `VITE_CLOUDFLARE_ACCOUNT_ID`
+   - `VITE_CLOUDFLARE_API_TOKEN`
+   - `VITE_CLOUDFLARE_KV_NAMESPACE_ID`
+   - `VITE_SHORT_URL_DOMAIN`
 
 ## 贡献
 

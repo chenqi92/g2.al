@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/images/*",
+    "/*.ico",
+    "/*.svg",
+    "/*.png"
+  ],
+  "routes": [
+    {
+      "pattern": "/api/url",
+      "script": "api/url.js"
+    },
+    {
+      "pattern": "/*",
+      "script": "[[path]].js"
+    }
+  ]
+} 
