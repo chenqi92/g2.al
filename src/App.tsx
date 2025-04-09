@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
@@ -13,6 +13,9 @@ import Terms from './pages/Terms';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
+import { runInitChecks } from './lib/initCheck';
+import { env } from './lib/env';
 
 // Protected Route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -36,6 +39,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function AppContent() {
+  useEffect(() => {
+    console.log('AppContent 初始化');
+  }, []);
+
   return (
     <Router>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white relative overflow-hidden flex flex-col">
@@ -109,16 +116,28 @@ function AppContent() {
   );
 }
 
-function App() {
+export default function App() {
+  useEffect(() => {
+    console.log('App 组件初始化');
+    console.log('环境变量测试:', env.SHORT_URL_DOMAIN);
+    
+    // 运行初始化检查
+    try {
+      runInitChecks();
+    } catch (error) {
+      console.error('初始化检查失败:', error);
+    }
+  }, []);
+
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </LanguageProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
-
-export default App;

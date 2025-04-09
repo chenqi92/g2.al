@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, RefreshCw, Copy, Trash2, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { env } from '../lib/env';
+import toast from 'react-hot-toast';
 
 interface Email {
   id: string;
@@ -12,27 +14,69 @@ interface Email {
 
 export default function TempMail() {
   const { t } = useTranslation();
-  const [tempEmail, setTempEmail] = useState('user123@tempmail.example.com');
+  const [tempEmail, setTempEmail] = useState('');
   const [emails, setEmails] = useState<Email[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [availableDomains, setAvailableDomains] = useState<string[]>([]);
+
+  // 组件加载时获取可用的临时邮箱域名列表
+  useEffect(() => {
+    const fetchDomains = async () => {
+      try {
+        // 首先尝试从API获取域名列表
+        const response = await fetch('/api/tempMail/domains');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.domains && Array.isArray(data.domains) && data.domains.length > 0) {
+            setAvailableDomains(data.domains);
+            return;
+          }
+        }
+        
+        // 如果API调用失败，使用环境变量中的默认值
+        setAvailableDomains(env.TEMP_EMAIL_DOMAINS);
+      } catch (error) {
+        console.error('获取临时邮箱域名失败:', error);
+        // 出错时使用环境变量中的默认值
+        setAvailableDomains(env.TEMP_EMAIL_DOMAINS);
+      }
+    };
+
+    fetchDomains();
+  }, []);
+
+  // 当可用域名列表更新时自动生成一个临时邮箱
+  useEffect(() => {
+    if (availableDomains.length > 0 && !tempEmail) {
+      generateNewEmail();
+    }
+  }, [availableDomains]);
 
   const generateNewEmail = async () => {
     setIsLoading(true);
+    setError('');
+    
     try {
-      // Get available domains from env var or use default
-      const availableDomains = (import.meta.env.VITE_TEMP_EMAIL_DOMAINS || 'tempmail.io,mailtemp.org').split(',');
-      // Generate random username
+      if (availableDomains.length === 0) {
+        throw new Error('没有可用的邮箱域名');
+      }
+      
+      // 生成随机用户名
       const username = `user${Math.random().toString(36).substring(2, 8)}`;
-      // Select random domain from available domains
+      // 从可用域名中随机选择一个
       const domain = availableDomains[Math.floor(Math.random() * availableDomains.length)];
       
       setTempEmail(`${username}@${domain}`);
       setEmails([]);
       setSelectedEmail(null);
-    } catch {
-      setError(t('tempMailPage.error.generate'));
+      
+      toast.success(t('tempMailPage.emailGenerated'));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || t('tempMailPage.error.generate'));
+      toast.error(t('tempMailPage.error.generate'));
     } finally {
       setIsLoading(false);
     }
@@ -41,17 +85,24 @@ export default function TempMail() {
   const copyEmailAddress = async () => {
     try {
       await navigator.clipboard.writeText(tempEmail);
+      toast.success(t('tempMailPage.copied'));
     } catch {
       setError(t('tempMailPage.error.copy'));
+      toast.error(t('tempMailPage.error.copy'));
     }
   };
 
   const refreshInbox = async () => {
     setIsLoading(true);
+    setError('');
+    
     try {
-      // TODO: Implement inbox refresh logic
+      // 这里只是模拟刷新，实际实现需要调用API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success(t('tempMailPage.refreshed'));
     } catch {
       setError(t('tempMailPage.error.refresh'));
+      toast.error(t('tempMailPage.error.refresh'));
     } finally {
       setIsLoading(false);
     }

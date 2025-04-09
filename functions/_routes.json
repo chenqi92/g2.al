@@ -14,6 +14,10 @@
       "script": "api/url.js"
     },
     {
+      "pattern": "/api/tempMail/domains",
+      "script": "api/tempMail.js"
+    },
+    {
       "pattern": "/*",
       "script": "[[path]].js"
     }
